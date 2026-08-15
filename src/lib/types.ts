@@ -1,0 +1,57 @@
+export interface User {
+  id: string
+  email: string
+  name: string | null
+  avatarUrl: string | null
+  plan: string
+}
+
+export interface Project {
+  id: string
+  name: string
+  slug: string
+  repoUrl: string | null
+  runtime: string | null
+  region: string
+  services?: Service[]
+}
+
+export type ServiceType = 'web' | 'worker' | 'cron' | 'static'
+
+export interface Service {
+  id: string
+  projectId: string
+  name: string
+  type: ServiceType
+  port: number | null
+  cpu: number
+  memory: number
+}
+
+export type DeploymentStatus =
+  | 'queued'
+  | 'building'
+  | 'pushing'
+  | 'provisioning'
+  | 'live'
+  | 'failed'
+  | 'cancelled'
+
+export interface Deployment {
+  id: string
+  serviceId: string
+  status: DeploymentStatus
+  commitSha: string | null
+  commitMessage: string | null
+  deployUrl: string | null
+  errorMessage: string | null
+  createdAt: string
+}
+
+export interface EnvVar {
+  id: string
+  serviceId: string
+  key: string
+  value: string
+  isSecret: boolean
+}
