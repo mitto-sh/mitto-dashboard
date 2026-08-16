@@ -10,13 +10,12 @@ export interface Project {
   id: string
   name: string
   slug: string
-  repoUrl: string | null
-  runtime: string | null
   region: string
   services?: Service[]
 }
 
 export type ServiceType = 'web' | 'worker' | 'cron' | 'static'
+export type RepoProvider = 'github' | 'gitlab' | 'bitbucket'
 
 export interface Service {
   id: string
@@ -26,6 +25,13 @@ export interface Service {
   port: number | null
   cpu: number
   memory: number
+  repoUrl: string | null
+  repoProvider: RepoProvider | null
+  defaultBranch: string
+  buildCommand: string | null
+  startCommand: string | null
+  outputDir: string | null
+  runtime: string | null
 }
 
 export type DeploymentStatus =

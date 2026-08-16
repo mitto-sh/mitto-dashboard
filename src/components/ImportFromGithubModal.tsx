@@ -3,11 +3,11 @@
 import { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
 import { useThemeContext } from './ThemeProvider'
-import type { GithubInstallation, GithubRepo, MittoServiceConfig, Project } from '@/lib/types'
+import type { GithubInstallation, GithubRepo, MittoServiceConfig, Project, Service } from '@/lib/types'
 
 interface ImportFromGithubModalProps {
   onCancel: () => void
-  onImported: (project: Project) => void
+  onImported: (services: Service[]) => void
 }
 
 type Step =
@@ -15,14 +15,22 @@ type Step =
   | { name: 'no-installations' }
   | { name: 'pick-installation'; installations: GithubInstallation[] }
   | { name: 'pick-repo'; installation: GithubInstallation; repos: GithubRepo[] }
-  | { name: 'confirm'; installation: GithubInstallation; repo: GithubRepo; detected: MittoServiceConfig[] }
+  | { name: 'pick-target'; installation: GithubInstallation; repo: GithubRepo; detected: MittoServiceConfig[]; projects: Project[] }
   | { name: 'importing' }
   | { name: 'error'; message: string }
+
+// Fallback when the repo has no mitto.yaml — still attach the repo to a
+// service so it's not a dead end, the user can adjust it after import.
+function defaultServiceConfig(repo: GithubRepo): MittoServiceConfig[] {
+  return [{ name: repo.name, type: 'web' }]
+}
 
 export function ImportFromGithubModal({ onCancel, onImported }: ImportFromGithubModalProps) {
   const { theme } = useThemeContext()
   const [step, setStep] = useState<Step>({ name: 'loading-installations' })
   const [filter, setFilter] = useState('')
+  const [targetProjectId, setTargetProjectId] = useState<string | 'new'>('new')
+  const [newProjectName, setNewProjectName] = useState('')
 
   useEffect(() => {
     api.listGithubInstallations()
@@ -53,9 +61,14 @@ export function ImportFromGithubModal({ onCancel, onImported }: ImportFromGithub
   async function handleSelectRepo(installation: GithubInstallation, repo: GithubRepo) {
     const [owner, name] = repo.full_name.split('/')
     try {
-      const result = await api.getRepoConfig(installation.installationId, owner!, name!)
-      const detected = result.found && result.valid ? result.config.services : []
-      setStep({ name: 'confirm', installation, repo, detected })
+      const [result, projects] = await Promise.all([
+        api.getRepoConfig(installation.installationId, owner!, name!),
+        api.listProjects(),
+      ])
+      const detected = result.found && result.valid ? result.config.services : defaultServiceConfig(repo)
+      setNewProjectName(repo.name)
+      setTargetProjectId(projects.length === 0 ? 'new' : 'new')
+      setStep({ name: 'pick-target', installation, repo, detected, projects })
     } catch (e) {
       setStep({ name: 'error', message: e instanceof Error ? e.message : 'Failed to read repo config' })
     }
@@ -64,17 +77,34 @@ export function ImportFromGithubModal({ onCancel, onImported }: ImportFromGithub
   async function handleImport(repo: GithubRepo, detected: MittoServiceConfig[]) {
     setStep({ name: 'importing' })
     try {
-      const project = await api.createProject({ name: repo.name, repoUrl: repo.html_url })
+      const projectId = targetProjectId === 'new'
+        ? (await api.createProject({ name: newProjectName })).id
+        : targetProjectId
+
+      const created: Service[] = []
       for (const svc of detected) {
-        await api.createService({ projectId: project.id, name: svc.name, type: svc.type, port: svc.port })
+        const service = await api.createService({
+          projectId,
+          name: svc.name,
+          type: svc.type,
+          port: svc.port,
+          repoUrl: repo.html_url,
+          repoProvider: 'github',
+          defaultBranch: repo.default_branch,
+          buildCommand: svc.buildCommand,
+          startCommand: svc.startCommand,
+          dockerfilePath: svc.dockerfilePath,
+        })
+        created.push(service)
       }
-      onImported(project)
+      onImported(created)
     } catch (e) {
       setStep({ name: 'error', message: e instanceof Error ? e.message : 'Import failed' })
     }
   }
 
   const cardStyle = { borderColor: theme.border, backgroundColor: theme.surface }
+  const inputStyle = { borderColor: theme.border, backgroundColor: theme.canvas, color: theme.ink }
 
   return (
     <div
@@ -132,7 +162,7 @@ export function ImportFromGithubModal({ onCancel, onImported }: ImportFromGithub
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
               className="mb-3 rounded-lg border px-3 py-2 text-sm outline-none"
-              style={{ borderColor: theme.border, backgroundColor: theme.canvas, color: theme.ink }}
+              style={inputStyle}
             />
             <ul className="flex flex-col gap-2 overflow-y-auto">
               {step.repos
@@ -152,36 +182,60 @@ export function ImportFromGithubModal({ onCancel, onImported }: ImportFromGithub
           </div>
         )}
 
-        {step.name === 'confirm' && (
-          <div className="flex flex-col gap-4">
+        {step.name === 'pick-target' && (
+          <div className="flex flex-col gap-4 overflow-y-auto">
             <p className="text-sm" style={{ color: theme.ink }}>
-              Import <strong>{step.repo.full_name}</strong>?
+              Importing <strong>{step.repo.full_name}</strong> as:
             </p>
-            {step.detected.length > 0 ? (
-              <div className="rounded-lg border p-3" style={{ borderColor: theme.line }}>
-                <p className="mb-2 font-mono text-[11px] uppercase tracking-[0.08em]" style={{ color: theme.muted }}>
-                  Detected from mitto.yaml
-                </p>
-                <ul className="flex flex-col gap-1">
-                  {step.detected.map((s) => (
-                    <li key={s.name} className="font-mono text-xs" style={{ color: theme.ink2 }}>
-                      {s.name} — {s.type}{s.port ? ` :${s.port}` : ''}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : (
-              <p className="font-mono text-xs" style={{ color: theme.muted }}>
-                No mitto.yaml found — you can add services after importing.
+            <div className="rounded-lg border p-3" style={{ borderColor: theme.line }}>
+              <p className="mb-2 font-mono text-[11px] uppercase tracking-[0.08em]" style={{ color: theme.muted }}>
+                {step.detected.length > 1 ? 'Services detected (mitto.yaml)' : 'Service'}
               </p>
+              <ul className="flex flex-col gap-1">
+                {step.detected.map((s) => (
+                  <li key={s.name} className="font-mono text-xs" style={{ color: theme.ink2 }}>
+                    {s.name} — {s.type}{s.port ? ` :${s.port}` : ''}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <label className="mb-[6px] block font-mono text-[11px] uppercase tracking-[0.08em]" style={{ color: theme.muted }}>
+                Project
+              </label>
+              <select
+                aria-label="Target project"
+                value={targetProjectId}
+                onChange={(e) => setTargetProjectId(e.target.value)}
+                className="w-full rounded-lg border px-3 py-2 text-sm outline-none"
+                style={inputStyle}
+              >
+                <option value="new">+ New project</option>
+                {step.projects.map((p) => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
+            </div>
+
+            {targetProjectId === 'new' && (
+              <input
+                aria-label="New project name"
+                value={newProjectName}
+                onChange={(e) => setNewProjectName(e.target.value)}
+                className="rounded-lg border px-3 py-2 text-sm outline-none"
+                style={inputStyle}
+              />
             )}
+
             <div className="flex justify-end gap-[10px]">
               <button onClick={onCancel} className="rounded-lg px-[14px] py-[9px] text-sm" style={{ color: theme.sec }}>
                 Cancel
               </button>
               <button
                 onClick={() => handleImport(step.repo, step.detected)}
-                className="rounded-lg px-[18px] py-[9px] text-sm font-semibold"
+                disabled={targetProjectId === 'new' && newProjectName.trim() === ''}
+                className="rounded-lg px-[18px] py-[9px] text-sm font-semibold disabled:opacity-50"
                 style={{ backgroundColor: theme.accent, color: theme.accentInk }}
               >
                 Import

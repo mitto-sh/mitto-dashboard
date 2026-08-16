@@ -113,6 +113,17 @@ export function ServiceDetailPanel({
           <ServiceTypeIcon type={service.type} size={12} />
           {service.type} · {service.port ? `:${service.port}` : 'no port'}
         </p>
+        {service.repoUrl && (
+          <a
+            href={service.repoUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="ml-[18px] mt-1 block truncate font-mono text-xs hover:underline"
+            style={{ color: theme.muted }}
+          >
+            {service.repoUrl.replace(/^https?:\/\/(www\.)?/, '')} @ {service.defaultBranch}
+          </a>
+        )}
       </div>
 
       <section className="p-[22px_24px]">

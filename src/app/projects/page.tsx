@@ -76,9 +76,11 @@ function ProjectsList() {
     setName('')
   }
 
-  function handleImported(project: Project) {
-    setProjects((prev) => [...prev, project])
+  async function handleImported() {
     setShowImportModal(false)
+    // Services may have landed in a new project or an existing one — simplest
+    // to just refresh the list rather than guess which.
+    setProjects(await api.listProjects())
   }
 
   return (

@@ -1,6 +1,6 @@
 import { getToken, clearToken } from './auth'
 import type {
-  Project, Service, ServiceType, Deployment, EnvVar, User,
+  Project, Service, ServiceType, RepoProvider, Deployment, EnvVar, User,
   GithubInstallation, GithubRepo, RepoConfigResult,
 } from './types'
 
@@ -48,12 +48,23 @@ export const api = {
   me: () => request<User>('/auth/me'),
 
   listProjects: () => request<Project[]>('/projects'),
-  createProject: (data: { name: string; repoUrl?: string; runtime?: string }) =>
+  createProject: (data: { name: string }) =>
     request<Project>('/projects', { method: 'POST', body: JSON.stringify(data) }),
   getProject: (id: string) => request<Project>(`/projects/${id}`),
   deleteProject: (id: string) => request<void>(`/projects/${id}`, { method: 'DELETE' }),
 
-  createService: (data: { projectId: string; name: string; type: ServiceType; port?: number }) =>
+  createService: (data: {
+    projectId: string
+    name: string
+    type: ServiceType
+    port?: number
+    repoUrl?: string
+    repoProvider?: RepoProvider
+    defaultBranch?: string
+    buildCommand?: string
+    startCommand?: string
+    dockerfilePath?: string
+  }) =>
     request<Service>('/services', { method: 'POST', body: JSON.stringify(data) }),
   deleteService: (id: string) => request<void>(`/services/${id}`, { method: 'DELETE' }),
 

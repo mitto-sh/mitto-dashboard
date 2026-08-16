@@ -6,6 +6,15 @@ import type { Service, Deployment, EnvVar } from '@/lib/types'
 
 const service: Service = {
   id: 'svc-1', projectId: 'p1', name: 'web', type: 'web', port: 3000, cpu: 256, memory: 512,
+  repoUrl: null, repoProvider: null, defaultBranch: 'main',
+  buildCommand: null, startCommand: null, outputDir: null, runtime: null,
+}
+
+const serviceWithRepo: Service = {
+  ...service,
+  repoUrl: 'https://github.com/acme/web',
+  repoProvider: 'github',
+  defaultBranch: 'develop',
 }
 
 const queuedDeployment: Deployment = {
@@ -45,6 +54,32 @@ describe('ServiceDetailPanel', () => {
       />,
     )
     expect(await screen.findByText('no deployments yet')).toBeInTheDocument()
+  })
+
+  it('shows the linked repo and branch when the service has one', async () => {
+    renderWithTheme(
+      <ServiceDetailPanel
+        service={serviceWithRepo}
+        onClose={vi.fn()}
+        onServiceDeleted={vi.fn()}
+        onDeploymentTriggered={vi.fn()}
+      />,
+    )
+    const link = await screen.findByText(/github.com\/acme\/web @ develop/)
+    expect(link).toHaveAttribute('href', 'https://github.com/acme/web')
+  })
+
+  it('omits the repo line when the service has no repo', async () => {
+    renderWithTheme(
+      <ServiceDetailPanel
+        service={service}
+        onClose={vi.fn()}
+        onServiceDeleted={vi.fn()}
+        onDeploymentTriggered={vi.fn()}
+      />,
+    )
+    await screen.findByText('no deployments yet')
+    expect(screen.queryByText(/github.com/)).not.toBeInTheDocument()
   })
 
   it('shows the latest deployment status and a cancel button when cancellable', async () => {
