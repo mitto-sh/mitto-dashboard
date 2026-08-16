@@ -3,11 +3,15 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { AuthGuard } from '@/components/AuthGuard'
+import { Logo } from '@/components/Logo'
+import { ArrowRightIcon } from '@/components/icons'
+import { useThemeContext } from '@/components/ThemeProvider'
 import { api } from '@/lib/api'
 import { validateProjectForm } from '@/lib/validation'
 import type { Project } from '@/lib/types'
 
 function ProjectsList() {
+  const { theme } = useThemeContext()
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [name, setName] = useState('')
@@ -34,43 +38,70 @@ function ProjectsList() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-12">
-      <h1 className="mb-6 text-xl font-semibold">Projects</h1>
+    <div>
+      <header className="flex h-14 items-center justify-between border-b px-6" style={{ borderColor: theme.subtle }}>
+        <div className="flex items-center gap-[10px]">
+          <Logo size={11} />
+          <span className="font-mono text-[13px] font-medium" style={{ color: theme.ink }}>mitto</span>
+        </div>
+        <div className="h-7 w-7 rounded-full border" style={{ borderColor: theme.border, backgroundColor: theme.raised }} />
+      </header>
 
-      <form onSubmit={handleCreate} className="mb-8 flex gap-2">
-        <input
-          aria-label="Project name"
-          placeholder="New project name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="flex-1 rounded border border-border bg-surface px-3 py-2 text-sm"
-        />
-        <button type="submit" className="rounded bg-white px-4 py-2 text-sm font-medium text-gray-900">
-          Create
-        </button>
-      </form>
-      {error && <p className="-mt-6 mb-6 text-xs text-red-400">{error}</p>}
+      <main className="mx-auto max-w-[720px] px-6 py-14">
+        <div className="mb-7 flex items-baseline gap-3">
+          <h1 className="text-xl font-semibold tracking-tight" style={{ color: theme.ink }}>Projects</h1>
+          <span className="font-mono text-xs" style={{ color: theme.muted }}>
+            {loading ? '' : String(projects.length).padStart(2, '0')}
+          </span>
+        </div>
 
-      {loading ? (
-        <p className="text-sm text-gray-500">Loading…</p>
-      ) : projects.length === 0 ? (
-        <p className="text-sm text-gray-500">No projects yet — create one above.</p>
-      ) : (
-        <ul className="space-y-2">
-          {projects.map((p) => (
-            <li key={p.id}>
-              <Link
-                href={`/projects/${p.id}`}
-                className="block rounded-lg border border-border bg-surface px-4 py-3 hover:border-gray-500"
-              >
-                <span className="font-medium">{p.name}</span>
-                <span className="ml-2 text-xs text-gray-500">{p.slug}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-    </main>
+        <form onSubmit={handleCreate} className="mb-9 flex gap-[10px]">
+          <input
+            aria-label="Project name"
+            placeholder="New project name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="flex-1 rounded-lg border px-[14px] py-[10px] text-sm outline-none transition-colors"
+            style={{ borderColor: theme.border, backgroundColor: theme.surface, color: theme.ink }}
+          />
+          <button
+            type="submit"
+            className="rounded-lg px-[18px] py-[10px] text-[13px] font-semibold transition-colors"
+            style={{ backgroundColor: theme.accent, color: theme.accentInk }}
+          >
+            Create
+          </button>
+        </form>
+        {error && <p className="-mt-7 mb-7 text-xs" style={{ color: theme.danger }}>{error}</p>}
+
+        {loading ? (
+          <p className="font-mono text-sm" style={{ color: theme.muted }}>Loading…</p>
+        ) : projects.length === 0 ? (
+          <div className="rounded-xl border border-dashed p-[48px_24px] text-center" style={{ borderColor: theme.border }}>
+            <p className="text-sm" style={{ color: theme.sec }}>No projects yet</p>
+            <p className="mt-2 font-mono text-xs" style={{ color: theme.muted }}>create one above to get started</p>
+          </div>
+        ) : (
+          <ul className="flex flex-col gap-[10px]">
+            {projects.map((p) => (
+              <li key={p.id}>
+                <Link
+                  href={`/projects/${p.id}`}
+                  className="flex items-center justify-between rounded-xl border p-[18px_20px] transition-colors"
+                  style={{ borderColor: theme.line, backgroundColor: theme.surface }}
+                >
+                  <div className="flex flex-col gap-[5px]">
+                    <span className="text-sm font-medium" style={{ color: theme.ink }}>{p.name}</span>
+                    <span className="font-mono text-xs" style={{ color: theme.muted }}>{p.slug}</span>
+                  </div>
+                  <ArrowRightIcon size={15} style={{ color: theme.faint }} />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </main>
+    </div>
   )
 }
 

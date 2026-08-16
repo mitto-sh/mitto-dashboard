@@ -3,7 +3,11 @@
 import { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
 import type { Service, Deployment, EnvVar } from '@/lib/types'
-import { DeploymentStatusBadge } from './DeploymentStatusBadge'
+import { statusLabel } from '@/lib/status'
+import { statusColorFor } from '@/lib/theme'
+import { formatRelativeTime } from '@/lib/time'
+import { useThemeContext } from './ThemeProvider'
+import { ServiceTypeIcon, XIcon, RocketIcon, Trash2Icon } from './icons'
 
 interface ServiceDetailPanelProps {
   service: Service
@@ -20,6 +24,7 @@ export function ServiceDetailPanel({
   onServiceDeleted,
   onDeploymentTriggered,
 }: ServiceDetailPanelProps) {
+  const { theme, dict } = useThemeContext()
   const [deployments, setDeployments] = useState<Deployment[]>([])
   const [envVars, setEnvVars] = useState<EnvVar[]>([])
   const [newKey, setNewKey] = useState('')
@@ -33,6 +38,7 @@ export function ServiceDetailPanel({
   }, [service.id])
 
   const latest = deployments[0]
+  const color = statusColorFor(theme, latest?.status)
 
   async function handleDeploy() {
     setBusy(true)
@@ -84,79 +90,146 @@ export function ServiceDetailPanel({
   }
 
   return (
-    <aside className="fixed right-0 top-0 h-full w-96 overflow-y-auto border-l border-border bg-surface p-5">
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-sm font-semibold">{service.name}</h2>
-        <button onClick={onClose} className="text-gray-500 hover:text-gray-300" aria-label="Close panel">
-          ✕
-        </button>
+    <aside
+      className="fixed right-0 top-0 z-30 h-full w-[400px] overflow-y-auto border-l"
+      style={{ backgroundColor: theme.panel, borderColor: theme.border, boxShadow: `-32px 0 64px ${theme.panelShadow}` }}
+    >
+      <div className="border-b p-[22px_24px_18px]" style={{ borderColor: theme.subtle }}>
+        <div className="flex items-center gap-[10px]">
+          <span className="h-2 w-2 flex-none rounded-full" style={{ backgroundColor: color }} />
+          <h2 className="flex-1 text-[16px] font-semibold tracking-tight" style={{ color: theme.ink }}>
+            {service.name}
+          </h2>
+          <button
+            onClick={onClose}
+            aria-label="Close panel"
+            className="inline-flex p-1 transition-colors"
+            style={{ color: theme.muted }}
+          >
+            <XIcon size={15} />
+          </button>
+        </div>
+        <p className="ml-[18px] mt-2 flex items-center gap-[6px] font-mono text-xs" style={{ color: theme.muted }}>
+          <ServiceTypeIcon type={service.type} size={12} />
+          {service.type} · {service.port ? `:${service.port}` : 'no port'}
+        </p>
       </div>
 
-      <section className="mb-6">
-        <h3 className="mb-2 text-xs font-medium uppercase text-gray-500">Deployments</h3>
+      <section className="p-[22px_24px]">
+        <h3 className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.08em]" style={{ color: theme.muted }}>
+          {dict.deployments}
+        </h3>
         {latest ? (
-          <div className="mb-2 flex items-center gap-2">
-            <DeploymentStatusBadge status={latest.status} />
-            <span className="text-xs text-gray-500">{latest.commitMessage ?? 'no commit message'}</span>
+          <div
+            className="mb-[14px] rounded-[10px] border p-[14px_16px]"
+            style={{ borderColor: theme.line, backgroundColor: theme.raised }}
+          >
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-[13px] font-medium" style={{ color }}>
+                {statusLabel(latest.status)}
+              </span>
+              <span className="font-mono text-[11px]" style={{ color: theme.muted }}>
+                {formatRelativeTime(latest.createdAt)}
+              </span>
+            </div>
+            <p className="mt-[10px] text-[13px]" style={{ color: theme.ink }}>
+              {latest.commitMessage ?? 'no commit message'}
+            </p>
+            {latest.commitSha && (
+              <p className="mt-[6px] font-mono text-[11px]" style={{ color: theme.muted }}>{latest.commitSha}</p>
+            )}
           </div>
         ) : (
-          <p className="mb-2 text-xs text-gray-500">No deployments yet</p>
+          <div className="mb-[14px] rounded-[10px] border border-dashed p-[18px_16px] text-center" style={{ borderColor: theme.border }}>
+            <p className="font-mono text-xs" style={{ color: theme.muted }}>{dict.noDeploys}</p>
+          </div>
         )}
-        {error && <p className="mb-2 text-xs text-red-400">{error}</p>}
+        {error && <p className="mb-2 text-xs" style={{ color: theme.danger }}>{error}</p>}
         <div className="flex gap-2">
           <button
             onClick={handleDeploy}
             disabled={busy}
-            className="rounded bg-white px-3 py-1.5 text-xs font-medium text-gray-900 disabled:opacity-50"
+            className="inline-flex items-center gap-[6px] rounded-lg px-4 py-2 text-[12.5px] font-semibold transition-colors disabled:opacity-50"
+            style={{ backgroundColor: theme.accent, color: theme.accentInk }}
           >
-            Deploy
+            <RocketIcon size={13} />
+            {dict.deploy}
           </button>
           {latest && CANCELLABLE.has(latest.status) && (
             <button
               onClick={handleCancel}
               disabled={busy}
-              className="rounded border border-border px-3 py-1.5 text-xs text-gray-300 disabled:opacity-50"
+              className="rounded-lg border px-4 py-2 text-[12.5px] font-medium transition-colors disabled:opacity-50"
+              style={{ borderColor: theme.border, color: theme.sec }}
             >
-              Cancel
+              {dict.cancel}
             </button>
           )}
         </div>
       </section>
 
-      <section className="mb-6">
-        <h3 className="mb-2 text-xs font-medium uppercase text-gray-500">Environment variables</h3>
-        <ul className="mb-3 space-y-1">
+      <section className="p-[6px_24px_22px]">
+        <h3 className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.08em]" style={{ color: theme.muted }}>
+          {dict.envVars}
+        </h3>
+        <ul className="mb-[14px] overflow-hidden rounded-[10px] border" style={{ borderColor: theme.line }}>
           {envVars.map((v) => (
-            <li key={v.key} className="flex items-center justify-between text-xs">
-              <span className="font-mono text-gray-300">{v.key}</span>
-              <button onClick={() => handleDeleteEnvVar(v.key)} className="text-gray-600 hover:text-red-400">
-                remove
+            <li
+              key={v.key}
+              className="flex items-center gap-[10px] border-b p-[10px_14px] last:border-b-0"
+              style={{ borderColor: theme.subtle, backgroundColor: theme.surface }}
+            >
+              <span className="flex-1 truncate font-mono text-xs font-medium" style={{ color: theme.ink2 }}>{v.key}</span>
+              <span className="font-mono text-xs" style={{ color: theme.faint }}>•••••••</span>
+              <button
+                onClick={() => handleDeleteEnvVar(v.key)}
+                aria-label="Remove variable"
+                className="inline-flex p-[2px] transition-colors"
+                style={{ color: theme.faint }}
+              >
+                <XIcon size={12} />
               </button>
             </li>
           ))}
         </ul>
-        <form onSubmit={handleAddEnvVar} className="flex gap-1">
+        <form onSubmit={handleAddEnvVar} className="flex gap-2">
           <input
             aria-label="Env var key"
             placeholder="KEY"
             value={newKey}
             onChange={(e) => setNewKey(e.target.value.toUpperCase())}
-            className="w-1/2 rounded border border-border bg-canvas px-2 py-1 text-xs"
+            className="w-2/5 rounded-lg border px-[10px] py-2 font-mono text-xs outline-none transition-colors"
+            style={{ borderColor: theme.border, backgroundColor: theme.canvas, color: theme.ink }}
           />
           <input
             aria-label="Env var value"
             placeholder="value"
             value={newValue}
             onChange={(e) => setNewValue(e.target.value)}
-            className="w-1/2 rounded border border-border bg-canvas px-2 py-1 text-xs"
+            className="flex-1 rounded-lg border px-[10px] py-2 font-mono text-xs outline-none transition-colors"
+            style={{ borderColor: theme.border, backgroundColor: theme.canvas, color: theme.ink }}
           />
-          <button type="submit" className="rounded bg-gray-700 px-2 py-1 text-xs">+</button>
+          <button
+            type="submit"
+            aria-label="Add variable"
+            className="rounded-lg border px-3 py-2 text-[13px] transition-colors"
+            style={{ borderColor: theme.chipBorder, backgroundColor: theme.chip, color: theme.sec }}
+          >
+            +
+          </button>
         </form>
       </section>
 
-      <button onClick={handleDeleteService} className="text-xs text-red-400 hover:text-red-300">
-        Delete service
-      </button>
+      <section className="mt-2 border-t p-[18px_24px_28px]" style={{ borderColor: theme.subtle }}>
+        <button
+          onClick={handleDeleteService}
+          className="inline-flex items-center gap-[6px] rounded-lg border px-4 py-2 text-[12.5px] font-medium transition-colors"
+          style={{ borderColor: theme.dangerBorder, color: theme.danger }}
+        >
+          <Trash2Icon size={13} />
+          {dict.deleteService}
+        </button>
+      </section>
     </aside>
   )
 }

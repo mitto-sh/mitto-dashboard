@@ -79,6 +79,33 @@ Overlay rgba(4,6,9,0.7) + backdrop-blur 4px. Card 400px, radius 14, bg surface, 
 - Focus visible en inputs = borde accent (reemplaza outline).
 - Loading: mantener layout, texto mono muted.
 
+## Variante definitiva: Bone (`Mitto - Canvas -Bone-.dc.html`) — USAR ESTA
+La versión final aprobada es la variante "Bone": tema claro hueso por defecto + tema oscuro gris cálido (estilo Claude), con toggle. Mismo layout e interacciones que el canvas oscuro original; cambian los tokens y se agregan dos controles.
+
+### Tokens Bone (tema claro, default)
+canvas #F4F2ED · surface #FBFAF7 · raised #F1EFE9 · panel #FDFCFA · chip #ECE9E2
+border #D8D3C8 · border-subtle #E7E3DA · line #E2DED4 · chip-border #D3CEC2 · dashed #CFCABE
+ink #1E2126 · ink2 #3A3F47 · secondary #5C6470 · muted #8B9099 · faint #A7A399
+accent #0FA893 (hover #12BCA4, texto sobre accent #FFFFFF)
+danger #DE3B30 · overlay rgba(45,41,33,0.35)
+status: live #1FA45B · building/pushing/provisioning #C88A16 · failed #DE3B30 · queued #6E7787 · cancelled #8B9099
+sombras: cards 0 8px 24px rgba(46,42,32,0.10) · drag 0 16px 48px rgba(46,42,32,0.22) · panel rgba(46,42,32,0.12)
+**Sin dot grid** — canvas liso.
+
+### Tokens Graphite (tema oscuro gris cálido)
+canvas #262624 · surface #30302E · raised #383735 · panel #2B2A28 · chip #3A3937
+border #45433F · subtle #3A3835 · line #403E3A · chip-border #4A4845 · dashed #514E48
+ink #ECEAE4 · ink2 #D6D3CC · secondary #A8A49C · muted #87847C · faint #5C594F
+accent #3DD6C4 (hover #5EE8D8, texto sobre accent #0A2622)
+danger #FF6459 · overlay rgba(15,14,12,0.6)
+status: live #46E08C · building #F0B441 · failed #FF6459 · queued #8A94A6 · cancelled #87847C
+
+### Controles esquina inferior izquierda
+[icono luna/sol — toggle tema] [botón ES/EN — toggle idioma] "04 services · drag to arrange"
+Botones 28px alto, radius 8, bg surface, borde border, icono/texto secondary → ink en hover.
+i18n: todas las labels de UI traducidas (Add service/Agregar servicio, Deployments/Despliegues, Environment variables/Variables de entorno, etc.); los estados de deployment quedan en inglés (valores del API).
+Iconos toggle: lucide moon (en claro) / sun (en oscuro).
+
 ## Iconography
 Lucide (https://lucide.dev) — stroke 2, currentColor, inline SVG. En `icons/`:
 - Tipos: web=globe, worker=settings, cron=clock, static=file-text (11px en chips, 12px en panel)

@@ -1,7 +1,8 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { screen, fireEvent } from '@testing-library/react'
 import { DndContext } from '@dnd-kit/core'
 import { ServiceCard } from '@/components/ServiceCard'
+import { renderWithTheme } from '../helpers/renderWithTheme'
 import type { Service } from '@/lib/types'
 
 const service: Service = {
@@ -16,12 +17,13 @@ const service: Service = {
 
 function renderCard(overrides: Partial<Parameters<typeof ServiceCard>[0]> = {}) {
   const onSelect = vi.fn()
-  render(
+  renderWithTheme(
     <DndContext>
       <ServiceCard
         service={service}
         position={{ x: 10, y: 20 }}
         latestStatus="live"
+        selected={false}
         onSelect={onSelect}
         {...overrides}
       />
@@ -43,9 +45,10 @@ describe('ServiceCard', () => {
     expect(screen.getByText('no port')).toBeInTheDocument()
   })
 
-  it('omits the status badge when there is no deployment yet', () => {
+  it('shows "no deploys" when there is no deployment yet', () => {
     renderCard({ latestStatus: null })
     expect(screen.queryByText('live')).not.toBeInTheDocument()
+    expect(screen.getByText('no deploys')).toBeInTheDocument()
   })
 
   it('calls onSelect when clicked', () => {

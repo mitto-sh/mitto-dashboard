@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { screen, fireEvent, waitFor } from '@testing-library/react'
+import { renderWithTheme } from '../helpers/renderWithTheme'
 import { setToken } from '@/lib/auth'
 import type { Project, Service } from '@/lib/types'
 
@@ -34,9 +35,9 @@ describe('ProjectPage (canvas)', () => {
 
   it('renders the project name and its services on the canvas', async () => {
     const { default: ProjectPage } = await import('@/app/projects/[id]/page')
-    render(<ProjectPage />)
+    renderWithTheme(<ProjectPage />)
 
-    expect(await screen.findByText('My App')).toBeInTheDocument()
+    expect(await screen.findByText('my-app')).toBeInTheDocument()
     expect(screen.getByTestId('service-card-svc-1')).toBeInTheDocument()
   })
 
@@ -45,13 +46,13 @@ describe('ProjectPage (canvas)', () => {
     vi.mocked(api.createService).mockResolvedValue(newService)
 
     const { default: ProjectPage } = await import('@/app/projects/[id]/page')
-    render(<ProjectPage />)
+    renderWithTheme(<ProjectPage />)
 
-    await screen.findByText('My App')
-    fireEvent.click(screen.getByRole('button', { name: '+ Add service' }))
+    await screen.findByText('my-app')
+    fireEvent.click(screen.getByRole('button', { name: 'Add service' }))
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'worker' } })
     fireEvent.change(screen.getByLabelText('Type'), { target: { value: 'worker' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Create' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Create service' }))
 
     await waitFor(() => {
       expect(api.createService).toHaveBeenCalledWith({
@@ -63,9 +64,9 @@ describe('ProjectPage (canvas)', () => {
 
   it('opens the service detail panel when a service card is clicked', async () => {
     const { default: ProjectPage } = await import('@/app/projects/[id]/page')
-    render(<ProjectPage />)
+    renderWithTheme(<ProjectPage />)
 
-    await screen.findByText('My App')
+    await screen.findByText('my-app')
     fireEvent.click(screen.getByTestId('service-card-svc-1'))
 
     expect(await screen.findByLabelText('Close panel')).toBeInTheDocument()

@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;background:#F4F2ED;font-family:'IBM Plex Sans',sans-serif;overflow:hidden}
+a{color:#0FA893;text-decoration:none}a:hover{color:#12BCA4}
+input::placeholder{color:#9BA0A8}
+@keyframes dotPulse{0%,100%{opacity:1}50%{opacity:.55}}
+</style></helmet>
+<div style="background:{{ t.canvas }};min-height:100vh;color:{{ t.ink }}" data-screen-label="Mitto Canvas Bone">
+  <header style="position:relative;z-index:20;display:flex;height:56px;align-items:center;justify-content:space-between;border-bottom:1px solid {{ t.subtle }};background:{{ t.headerBg }};padding:0 20px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <a href="#" style="display:flex;align-items:center;gap:10px">
+        <span style="width:11px;height:11px;background:{{ t.accent }};transform:rotate(45deg);border-radius:2.5px;display:inline-block"></span>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:{{ t.ink }}">mitto</span>
+      </a>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:{{ t.faint }}">/</span>
+      <h1 style="margin:0;font-size:13px;font-weight:500;color:{{ t.ink }}">acme-api</h1>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <button style="display:inline-flex;align-items:center;gap:6px;border-radius:8px;background:{{ t.accent }};border:none;padding:7px 14px;font-size:12.5px;font-weight:600;color:{{ t.accentInk }};cursor:pointer;font-family:'IBM Plex Sans',sans-serif;transition:background .15s ease" style-hover="background:{{ t.accentHover }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5v14"></path></svg>{{ i.addService }}</button>
+    </div>
+  </header>
+  <div style="position:relative;height:calc(100vh - 56px);width:100%;overflow:hidden;background-color:{{ t.canvas }}">
+    <sc-if value="{{ emptyCanvas }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px">
+        <div style="width:56px;height:56px;border:1px dashed {{ t.dashed }};border-radius:14px;display:flex;align-items:center;justify-content:center">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{{ t.faint }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5v14"></path></svg>
+        </div>
+        <div style="text-align:center">
+          <p style="margin:0;font-size:14px;color:{{ t.sec }}">{{ i.emptyTitle }}</p>
+          <p style="margin:6px 0 0;font-family:'IBM Plex Mono',monospace;font-size:12px;color:{{ t.muted }}">{{ i.emptySub }}</p>
+        </div>
+        <button style="margin-top:4px;display:inline-flex;align-items:center;gap:6px;border-radius:8px;background:{{ t.accent }};border:none;padding:9px 18px;font-size:13px;font-weight:600;color:{{ t.accentInk }};cursor:pointer"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5v14"></path></svg>{{ i.addService }}</button>
+      </div>
+    </sc-if>
+    <sc-if value="{{ showCards }}" hint-placeholder-val="{{ true }}">
+      <div>
+        {{ connectionsSvg }}
+        <sc-for list="{{ cards }}" as="s" hint-placeholder-count="4">
+          <div onPointerDown="{{ s.onDown }}" onClick="{{ s.onClick }}" style="position:absolute;left:{{ s.x }}px;top:{{ s.y }}px;z-index:{{ s.z }};width:264px;box-sizing:border-box;cursor:{{ s.cursor }};user-select:none;touch-action:none;border-radius:12px;border:1px solid {{ s.borderColor }};background:{{ s.cardBg }};padding:16px 18px;box-shadow:{{ s.shadow }};transform:{{ s.transform }};transition:{{ s.transition }}" style-hover="border-color:{{ s.borderHover }}">
+            <div style="display:flex;align-items:center;gap:9px">
+              <span style="width:8px;height:8px;border-radius:50%;flex:none;background:{{ s.statusColor }};animation:{{ s.dotAnim }}"></span>
+              <span style="font-size:14.5px;font-weight:600;letter-spacing:-0.01em;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:{{ t.ink }}">{{ s.name }}</span>
+              <span style="display:inline-flex;align-items:center;gap:5px;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:{{ t.sec }};background:{{ t.chip }};border:1px solid {{ t.chipBorder }};border-radius:5px;padding:3px 7px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ s.iconD }}"></path></svg>{{ s.type }}</span>
+            </div>
+            <div style="margin-top:14px;display:flex;align-items:center;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:12px">
+              <span style="color:{{ t.muted }}">{{ s.portLabel }}</span>
+              <span style="color:{{ s.statusColor }}">{{ s.status }}</span>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+    <div style="position:absolute;left:20px;bottom:16px;display:flex;align-items:center;gap:10px">
+      <button onClick="{{ toggleTheme }}" aria-label="Toggle theme" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;background:{{ t.surface }};border:1px solid {{ t.border }};color:{{ t.sec }};cursor:pointer;transition:color .15s ease,border-color .15s ease" style-hover="color:{{ t.ink }};border-color:{{ t.faint }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ themeIconD }}"></path></svg></button>
+      <button onClick="{{ toggleLang }}" aria-label="Toggle language" style="display:inline-flex;align-items:center;justify-content:center;height:28px;padding:0 10px;border-radius:8px;background:{{ t.surface }};border:1px solid {{ t.border }};font-family:'IBM Plex Mono',monospace;font-size:11px;color:{{ t.sec }};cursor:pointer;transition:color .15s ease,border-color .15s ease" style-hover="color:{{ t.ink }};border-color:{{ t.faint }}">{{ langLabel }}</button>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:{{ t.faint }};pointer-events:none">{{ serviceCount }} {{ i.servicesFooter }}</span>
+    </div>
+  </div>
+  <sc-if value="{{ panelVisible }}" hint-placeholder-val="{{ true }}">
+    <aside style="position:fixed;right:0;top:0;z-index:30;height:100%;width:400px;box-sizing:border-box;overflow-y:auto;border-left:1px solid {{ t.border }};background:{{ t.panel }};box-shadow:-32px 0 64px {{ t.panelShadow }}">
+      <div style="padding:22px 24px 18px;border-bottom:1px solid {{ t.subtle }}">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="width:8px;height:8px;border-radius:50%;background:{{ sel.statusColor }};flex:none"></span>
+          <h2 style="margin:0;font-size:16px;font-weight:600;letter-spacing:-0.01em;flex:1;color:{{ t.ink }}">{{ sel.name }}</h2>
+          <button onClick="{{ closePanel }}" aria-label="Close panel" style="display:inline-flex;background:none;border:none;color:{{ t.muted }};cursor:pointer;line-height:1;padding:4px;transition:color .15s ease" style-hover="color:{{ t.ink }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+        </div>
+        <p style="margin:8px 0 0 18px;display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:{{ t.muted }}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ sel.iconD }}"></path></svg>{{ sel.metaLine }}</p>
+      </div>
+      <section style="padding:22px 24px">
+        <h3 style="margin:0 0 12px;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:{{ t.muted }}">{{ i.deployments }}</h3>
+        <sc-if value="{{ sel.hasDeployment }}" hint-placeholder-val="{{ true }}">
+          <div style="border:1px solid {{ t.line }};background:{{ t.raised }};border-radius:10px;padding:14px 16px;margin-bottom:14px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:{{ sel.statusColor }}">{{ sel.status }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:{{ t.muted }}">{{ sel.deployTime }}</span>
+            </div>
+            <p style="margin:10px 0 0;font-size:13px;color:{{ t.ink }};text-wrap:pretty">{{ sel.commitMessage }}</p>
+            <p style="margin:6px 0 0;font-family:'IBM Plex Mono',monospace;font-size:11px;color:{{ t.muted }}">{{ sel.commitSha }}</p>
+          </div>
+        </sc-if>
+        <sc-if value="{{ sel.noDeployment }}" hint-placeholder-val="{{ false }}">
+          <div style="border:1px dashed {{ t.border }};border-radius:10px;padding:18px 16px;margin-bottom:14px;text-align:center">
+            <p style="margin:0;font-family:'IBM Plex Mono',monospace;font-size:12px;color:{{ t.muted }}">{{ i.noDeploys }}</p>
+          </div>
+        </sc-if>
+        <div style="display:flex;gap:8px">
+          <button style="display:inline-flex;align-items:center;gap:6px;border-radius:8px;background:{{ t.accent }};border:none;padding:8px 16px;font-size:12.5px;font-weight:600;color:{{ t.accentInk }};cursor:pointer;transition:background .15s ease" style-hover="background:{{ t.accentHover }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2zM9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05"></path></svg>{{ i.deploy }}</button>
+          <sc-if value="{{ sel.cancellable }}" hint-placeholder-val="{{ false }}">
+            <button style="border-radius:8px;background:none;border:1px solid {{ t.border }};padding:8px 16px;font-size:12.5px;font-weight:500;color:{{ t.sec }};cursor:pointer;transition:border-color .15s ease,color .15s ease" style-hover="border-color:{{ t.faint }};color:{{ t.ink }}">{{ i.cancel }}</button>
+          </sc-if>
+        </div>
+      </section>
+      <section style="padding:6px 24px 22px">
+        <h3 style="margin:0 0 12px;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:{{ t.muted }}">{{ i.envVars }}</h3>
+        <ul style="list-style:none;margin:0 0 14px;padding:0;border:1px solid {{ t.line }};border-radius:10px;overflow:hidden">
+          <sc-for list="{{ envVars }}" as="v" hint-placeholder-count="3">
+            <li style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid {{ t.subtle }};background:{{ t.surface }}">
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;color:{{ t.ink2 }};flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ v.key }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:{{ t.faint }}">•••••••</span>
+              <button aria-label="Remove variable" style="display:inline-flex;background:none;border:none;color:{{ t.faint }};cursor:pointer;line-height:1;padding:2px;transition:color .15s ease" style-hover="color:{{ t.danger }}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+            </li>
+          </sc-for>
+        </ul>
+        <form style="display:flex;gap:8px">
+          <input aria-label="Env var key" placeholder="KEY" style="width:40%;border-radius:8px;border:1px solid {{ t.border }};background:{{ t.canvas }};padding:8px 10px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:{{ t.ink }};box-sizing:border-box;outline:none;transition:border-color .15s ease" style-focus="border-color:{{ t.accent }}" />
+          <input aria-label="Env var value" placeholder="value" style="flex:1;border-radius:8px;border:1px solid {{ t.border }};background:{{ t.canvas }};padding:8px 10px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:{{ t.ink }};box-sizing:border-box;outline:none;transition:border-color .15s ease" style-focus="border-color:{{ t.accent }}" />
+          <button type="submit" aria-label="Add variable" style="border-radius:8px;background:{{ t.chip }};border:1px solid {{ t.chipBorder }};padding:8px 12px;font-size:13px;color:{{ t.sec }};cursor:pointer;transition:color .15s ease" style-hover="color:{{ t.ink }}">+</button>
+        </form>
+      </section>
+      <section style="margin-top:8px;padding:18px 24px 28px;border-top:1px solid {{ t.subtle }}">
+        <button style="display:inline-flex;align-items:center;gap:6px;border-radius:8px;background:none;border:1px solid {{ t.dangerBorder }};padding:8px 16px;font-size:12.5px;font-weight:500;color:{{ t.danger }};cursor:pointer;transition:background .15s ease" style-hover="background:{{ t.dangerBg }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 11v6M14 11v6M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>{{ i.deleteService }}</button>
+      </section>
+    </aside>
+  </sc-if>
+  <sc-if value="{{ showModal }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;background:{{ t.overlay }};backdrop-filter:blur(4px)">
+      <form style="width:400px;box-sizing:border-box;border-radius:14px;border:1px solid {{ t.border }};background:{{ t.surface }};padding:24px;box-shadow:0 24px 64px {{ t.panelShadow }}">
+        <h2 style="margin:0;font-size:15px;font-weight:600;color:{{ t.ink }}">{{ i.addService }}</h2>
+        <p style="margin:6px 0 20px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:{{ t.muted }}">acme-api</p>
+        <label for="m-name" style="display:block;margin-bottom:6px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:{{ t.muted }}">{{ i.name }}</label>
+        <input id="m-name" placeholder="gateway" style="width:100%;box-sizing:border-box;margin-bottom:16px;border-radius:8px;border:1px solid {{ t.border }};background:{{ t.canvas }};padding:9px 12px;font-size:14px;color:{{ t.ink }};outline:none;transition:border-color .15s ease" style-focus="border-color:{{ t.accent }}" />
+        <label for="m-type" style="display:block;margin-bottom:6px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:{{ t.muted }}">{{ i.type }}</label>
+        <select id="m-type" style="width:100%;box-sizing:border-box;margin-bottom:16px;border-radius:8px;border:1px solid {{ t.border }};background:{{ t.canvas }};padding:9px 12px;font-size:14px;color:{{ t.ink }};outline:none">
+          <option value="web">web</option><option value="worker">worker</option><option value="cron">cron</option><option value="static">static</option>
+        </select>
+        <label for="m-port" style="display:block;margin-bottom:6px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:{{ t.muted }}">{{ i.port }} <span style="text-transform:none;letter-spacing:0;color:{{ t.faint }}">{{ i.optional }}</span></label>
+        <input id="m-port" placeholder="3000" style="width:100%;box-sizing:border-box;border-radius:8px;border:1px solid {{ t.border }};background:{{ t.canvas }};padding:9px 12px;font-family:'IBM Plex Mono',monospace;font-size:13px;color:{{ t.ink }};outline:none;transition:border-color .15s ease" style-focus="border-color:{{ t.accent }}" />
+        <div style="margin-top:24px;display:flex;justify-content:flex-end;gap:10px">
+          <button type="button" style="border-radius:8px;background:none;border:none;padding:9px 14px;font-size:13px;font-weight:500;color:{{ t.sec }};cursor:pointer" style-hover="color:{{ t.ink }}">{{ i.cancel }}</button>
+          <button type="submit" style="border-radius:8px;background:{{ t.accent }};border:none;padding:9px 18px;font-size:13px;font-weight:600;color:{{ t.accentInk }};cursor:pointer;transition:background .15s ease" style-hover="background:{{ t.accentHover }}">{{ i.createService }}</button>
+        </div>
+      </form>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;showConnections&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Canvas&quot;},&quot;emptyCanvas&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;States&quot;},&quot;showModal&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;States&quot;}}">
+class Component extends DCLogic {
+  state = {
+    positions: { gateway: {x:110,y:100}, worker: {x:470,y:200}, 'nightly-sync': {x:110,y:330}, docs: {x:470,y:430} },
+    dragging: null, selected: 'gateway', theme: 'bone', lang: 'en',
+  };
+  services = [
+    { id:'gateway', name:'gateway', type:'web', port:':3000', status:'live', commitMessage:'fix: rate-limit burst window', commitSha:'a3f9c12', deployTime:'2h ago' },
+    { id:'worker', name:'worker', type:'worker', port:'no port', status:'building', commitMessage:'feat: retry failed jobs with backoff', commitSha:'7be041d', deployTime:'just now' },
+    { id:'nightly-sync', name:'nightly-sync', type:'cron', port:'no port', status:null },
+    { id:'docs', name:'docs', type:'static', port:':4321', status:'failed', commitMessage:'chore: bump astro to 4.9', commitSha:'c2d88f0', deployTime:'1d ago' },
+  ];
+  t() {
+    return this.state.theme === 'graphite' ? {
+      canvas:'#262624', headerBg:'rgba(38,38,36,0.92)', surface:'#30302E', raised:'#383735', panel:'#2B2A28',
+      chip:'#3A3937', chipBorder:'#4A4845', border:'#45433F', subtle:'#3A3835', line:'#403E3A', dashed:'#514E48',
+      ink:'#ECEAE4', ink2:'#D6D3CC', sec:'#A8A49C', muted:'#87847C', faint:'#5C594F',
+      accent:'#3DD6C4', accentHover:'#5EE8D8', accentInk:'#0A2622',
+      danger:'#FF6459', dangerBorder:'rgba(255,100,89,0.35)', dangerBg:'rgba(255,100,89,0.08)',
+      overlay:'rgba(15,14,12,0.6)', cardDrag:'#383735',
+      shadowCard:'0 8px 24px rgba(0,0,0,0.3)', shadowDrag:'0 16px 48px rgba(0,0,0,0.5)', panelShadow:'rgba(0,0,0,0.35)',
+      connStroke:'rgba(61,214,196,0.3)', connDot:'rgba(61,214,196,0.5)',
+      status: { live:'#46E08C', building:'#F0B441', pushing:'#F0B441', provisioning:'#F0B441', failed:'#FF6459', queued:'#8A94A6', cancelled:'#87847C' },
+    } : {
+      canvas:'#F4F2ED', headerBg:'rgba(251,250,247,0.92)', surface:'#FBFAF7', raised:'#F1EFE9', panel:'#FDFCFA',
+      chip:'#ECE9E2', chipBorder:'#D3CEC2', border:'#D8D3C8', subtle:'#E7E3DA', line:'#E2DED4', dashed:'#CFCABE',
+      ink:'#1E2126', ink2:'#3A3F47', sec:'#5C6470', muted:'#8B9099', faint:'#A7A399',
+      accent:'#0FA893', accentHover:'#12BCA4', accentInk:'#FFFFFF',
+      danger:'#DE3B30', dangerBorder:'rgba(222,59,48,0.35)', dangerBg:'rgba(222,59,48,0.06)',
+      overlay:'rgba(45,41,33,0.35)', cardDrag:'#FFFFFF',
+      shadowCard:'0 8px 24px rgba(46,42,32,0.10)', shadowDrag:'0 16px 48px rgba(46,42,32,0.22)', panelShadow:'rgba(46,42,32,0.12)',
+      connStroke:'rgba(15,168,147,0.35)', connDot:'rgba(15,168,147,0.55)',
+      status: { live:'#1FA45B', building:'#C88A16', pushing:'#C88A16', provisioning:'#C88A16', failed:'#DE3B30', queued:'#6E7787', cancelled:'#8B9099' },
+    };
+  }
+  iconD(type) {
+    return {
+      web: 'M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20M2 12h20',
+      worker: 'M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0',
+      cron: 'M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0M12 6v6l4 2',
+      static: 'M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2zM14 2v5a1 1 0 0 0 1 1h5M10 9H8M16 13H8M16 17H8',
+    }[type];
+  }
+  startDrag(id, e) {
+    e.preventDefault();
+    const pos = this.state.positions[id];
+    const start = { mx: e.clientX, my: e.clientY, x: pos.x, y: pos.y };
+    this._moved = false;
+    const move = (ev) => {
+      const dx = ev.clientX - start.mx, dy = ev.clientY - start.my;
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) this._moved = true;
+      this.setState(st => ({ dragging: id, positions: { ...st.positions, [id]: { x: start.x + dx, y: start.y + dy } } }));
+    };
+    const up = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      this.setState({ dragging: null });
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  }
+  renderVals() {
+    const pal = this.t();
+    const showConnections = this.props.showConnections ?? true;
+    const emptyCanvas = this.props.emptyCanvas ?? false;
+    const showModal = this.props.showModal ?? false;
+    const { positions, dragging, selected } = this.state;
+    const hex = (c, a) => c + Math.round(a*255).toString(16).padStart(2,'0');
+    const cards = this.services.map(s => {
+      const p = positions[s.id];
+      const col = pal.status[s.status] || pal.muted;
+      const drag = dragging === s.id;
+      const selectedCard = selected === s.id;
+      const hasStatus = !!s.status;
+      const base = hasStatus ? `0 0 0 1px ${hex(col,0.14)}, 0 0 28px ${hex(col,0.1)}` : '0 0 0 0 transparent';
+      return {
+        id: s.id, name: s.name, type: s.type, iconD: this.iconD(s.type), portLabel: s.port,
+        status: s.status || 'no deploys', statusColor: hasStatus ? col : pal.faint,
+        x: p.x, y: p.y, z: drag ? 10 : (selectedCard ? 2 : 1),
+        cursor: drag ? 'grabbing' : 'grab',
+        borderColor: hasStatus ? hex(col, drag ? 0.6 : 0.35) : pal.border,
+        borderHover: hasStatus ? hex(col, 0.6) : pal.faint,
+        cardBg: drag ? pal.cardDrag : pal.surface,
+        shadow: drag ? `${base}, ${pal.shadowDrag}` : `${base}, ${pal.shadowCard}`,
+        transform: drag ? 'scale(1.03)' : 'scale(1)',
+        transition: drag ? 'none' : 'box-shadow .15s ease, border-color .15s ease, transform .15s ease',
+        dotAnim: s.status === 'building' ? 'dotPulse 1.6s ease-in-out infinite' : 'none',
+        onDown: (e) => this.startDrag(s.id, e),
+        onClick: () => { if (!this._moved) this.setState({ selected: s.id }); },
+      };
+    });
+    let connectionsSvg = null;
+    if (showConnections && !emptyCanvas) {
+      const links = [['gateway','worker'],['gateway','nightly-sync']];
+      const paths = links.map(([a,b],i) => {
+        const pa = positions[a], pb = positions[b];
+        const x1 = pa.x + 264, y1 = pa.y + 43, x2 = pb.x, y2 = pb.y + 43;
+        const d = `M ${x1} ${y1} C ${x1+70} ${y1}, ${x2-70} ${y2}, ${x2} ${y2}`;
+        return React.createElement('g', {key:i},
+          React.createElement('path', {d, stroke:pal.connStroke, strokeWidth:1.5, fill:'none'}),
+          React.createElement('circle', {cx:x1, cy:y1, r:3, fill:pal.canvas, stroke:pal.connDot, strokeWidth:1.5}),
+          React.createElement('circle', {cx:x2, cy:y2, r:3, fill:pal.canvas, stroke:pal.connDot, strokeWidth:1.5}));
+      });
+      connectionsSvg = React.createElement('svg', {style:{position:'absolute',inset:0,width:'100%',height:'100%',pointerEvents:'none'}}, paths);
+    }
+    const s = this.services.find(v => v.id === selected) || this.services[0];
+    const col = pal.status[s.status] || pal.muted;
+    const cancellable = ['queued','building','pushing','provisioning'].includes(s.status);
+    return {
+      emptyCanvas, showCards: !emptyCanvas, showModal, cards, connectionsSvg,
+      t: pal,
+      themeIconD: this.state.theme === 'graphite'
+        ? 'M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0'
+        : 'M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z',
+      toggleTheme: () => this.setState(st => ({ theme: st.theme === 'graphite' ? 'bone' : 'graphite' })),
+      langLabel: this.state.lang === 'es' ? 'EN' : 'ES',
+      toggleLang: () => this.setState(st => ({ lang: st.lang === 'es' ? 'en' : 'es' })),
+      i: this.state.lang === 'es' ? {
+        addService:'Agregar servicio', deployments:'Despliegues', envVars:'Variables de entorno',
+        deploy:'Deploy', cancel:'Cancelar', deleteService:'Eliminar servicio',
+        noDeploys:'sin deployments todavía', emptyTitle:'No hay servicios en este proyecto',
+        emptySub:'agregá un servicio web, worker, cron o static', servicesFooter:'servicios · arrastrá para ordenar',
+        createService:'Crear servicio', name:'Nombre', type:'Tipo', port:'Puerto', optional:'— opcional',
+      } : {
+        addService:'Add service', deployments:'Deployments', envVars:'Environment variables',
+        deploy:'Deploy', cancel:'Cancel', deleteService:'Delete service',
+        noDeploys:'no deployments yet', emptyTitle:'No services in this project',
+        emptySub:'add a web, worker, cron or static service', servicesFooter:'services · drag to arrange',
+        createService:'Create service', name:'Name', type:'Type', port:'Port', optional:'— optional',
+      },
+      serviceCount: String(this.services.length).padStart(2,'0'),
+      panelVisible: !!selected && !emptyCanvas,
+      closePanel: () => this.setState({ selected: null }),
+      sel: {
+        name: s.name, iconD: this.iconD(s.type), metaLine: `${s.type} · ${s.port}`,
+        status: s.status || 'no deploys', statusColor: s.status ? col : pal.faint,
+        hasDeployment: !!s.status, noDeployment: !s.status,
+        commitMessage: s.commitMessage || '', commitSha: s.commitSha || '', deployTime: s.deployTime || '',
+        cancellable,
+      },
+      envVars: [{key:'DATABASE_URL'},{key:'REDIS_URL'},{key:'STRIPE_SECRET_KEY'}],
+    };
+  }
+}
+</script>
+</body>
+</html>

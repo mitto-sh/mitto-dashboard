@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { screen, fireEvent, waitFor } from '@testing-library/react'
+import { renderWithTheme } from '../helpers/renderWithTheme'
 import { ServiceDetailPanel } from '@/components/ServiceDetailPanel'
 import type { Service, Deployment, EnvVar } from '@/lib/types'
 
@@ -34,8 +35,8 @@ describe('ServiceDetailPanel', () => {
     vi.mocked(api.listEnvVars).mockResolvedValue([envVar])
   })
 
-  it('shows "No deployments yet" when there is no deployment history', async () => {
-    render(
+  it('shows "no deployments yet" when there is no deployment history', async () => {
+    renderWithTheme(
       <ServiceDetailPanel
         service={service}
         onClose={vi.fn()}
@@ -43,12 +44,12 @@ describe('ServiceDetailPanel', () => {
         onDeploymentTriggered={vi.fn()}
       />,
     )
-    expect(await screen.findByText('No deployments yet')).toBeInTheDocument()
+    expect(await screen.findByText('no deployments yet')).toBeInTheDocument()
   })
 
   it('shows the latest deployment status and a cancel button when cancellable', async () => {
     vi.mocked(api.listDeployments).mockResolvedValue([queuedDeployment])
-    render(
+    renderWithTheme(
       <ServiceDetailPanel
         service={service}
         onClose={vi.fn()}
@@ -65,7 +66,7 @@ describe('ServiceDetailPanel', () => {
     const newDeployment = { ...queuedDeployment, id: 'd2' }
     vi.mocked(api.triggerDeployment).mockResolvedValue(newDeployment)
 
-    render(
+    renderWithTheme(
       <ServiceDetailPanel
         service={service}
         onClose={vi.fn()}
@@ -73,7 +74,7 @@ describe('ServiceDetailPanel', () => {
         onDeploymentTriggered={onDeploymentTriggered}
       />,
     )
-    await screen.findByText('No deployments yet')
+    await screen.findByText('no deployments yet')
     fireEvent.click(screen.getByRole('button', { name: 'Deploy' }))
 
     await waitFor(() => expect(onDeploymentTriggered).toHaveBeenCalledWith(newDeployment))
@@ -81,7 +82,7 @@ describe('ServiceDetailPanel', () => {
 
   it('shows an error message when triggering a deployment fails', async () => {
     vi.mocked(api.triggerDeployment).mockRejectedValue(new Error('boom'))
-    render(
+    renderWithTheme(
       <ServiceDetailPanel
         service={service}
         onClose={vi.fn()}
@@ -89,14 +90,14 @@ describe('ServiceDetailPanel', () => {
         onDeploymentTriggered={vi.fn()}
       />,
     )
-    await screen.findByText('No deployments yet')
+    await screen.findByText('no deployments yet')
     fireEvent.click(screen.getByRole('button', { name: 'Deploy' }))
 
     expect(await screen.findByText('boom')).toBeInTheDocument()
   })
 
   it('lists env vars and deletes one', async () => {
-    render(
+    renderWithTheme(
       <ServiceDetailPanel
         service={service}
         onClose={vi.fn()}
@@ -106,13 +107,13 @@ describe('ServiceDetailPanel', () => {
     )
     expect(await screen.findByText('NODE_ENV')).toBeInTheDocument()
 
-    fireEvent.click(screen.getByText('remove'))
+    fireEvent.click(screen.getByLabelText('Remove variable'))
     await waitFor(() => expect(api.deleteEnvVar).toHaveBeenCalledWith('svc-1', 'NODE_ENV'))
   })
 
   it('adds a new env var', async () => {
     vi.mocked(api.upsertEnvVars).mockResolvedValue([{ ...envVar, key: 'PORT', value: '***' }])
-    render(
+    renderWithTheme(
       <ServiceDetailPanel
         service={service}
         onClose={vi.fn()}
@@ -133,7 +134,7 @@ describe('ServiceDetailPanel', () => {
 
   it('deletes the service and reports it to the parent', async () => {
     const onServiceDeleted = vi.fn()
-    render(
+    renderWithTheme(
       <ServiceDetailPanel
         service={service}
         onClose={vi.fn()}
@@ -141,7 +142,7 @@ describe('ServiceDetailPanel', () => {
         onDeploymentTriggered={vi.fn()}
       />,
     )
-    await screen.findByText('No deployments yet')
+    await screen.findByText('no deployments yet')
     fireEvent.click(screen.getByText('Delete service'))
 
     await waitFor(() => expect(onServiceDeleted).toHaveBeenCalledWith('svc-1'))
@@ -149,7 +150,7 @@ describe('ServiceDetailPanel', () => {
 
   it('calls onClose when the close button is clicked', async () => {
     const onClose = vi.fn()
-    render(
+    renderWithTheme(
       <ServiceDetailPanel
         service={service}
         onClose={onClose}
@@ -157,7 +158,7 @@ describe('ServiceDetailPanel', () => {
         onDeploymentTriggered={vi.fn()}
       />,
     )
-    await screen.findByText('No deployments yet')
+    await screen.findByText('no deployments yet')
     fireEvent.click(screen.getByLabelText('Close panel'))
     expect(onClose).toHaveBeenCalled()
   })
