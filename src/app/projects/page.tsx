@@ -21,7 +21,7 @@ function ProjectsList() {
     api.listProjects().then((data) => {
       setProjects(data)
       setLoading(false)
-    })
+    }).catch(() => setLoading(false))
   }, [])
 
   async function handleCreate(e: React.FormEvent) {

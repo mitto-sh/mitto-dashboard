@@ -30,7 +30,7 @@ function ProjectCanvasView({ projectId }: { projectId: string }) {
         }),
       )
       setLatestDeployments(Object.fromEntries(entries))
-    })
+    }).catch(() => {})
   }, [projectId])
 
   async function handleCreateService(data: { name: string; type: string; port?: number }) {

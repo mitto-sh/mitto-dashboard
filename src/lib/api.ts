@@ -1,4 +1,4 @@
-import { getToken } from './auth'
+import { getToken, clearToken } from './auth'
 import type { Project, Service, ServiceType, Deployment, EnvVar, User } from './types'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000'
@@ -27,6 +27,10 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const body = await res.json().catch(() => ({}))
 
   if (!res.ok) {
+    if (res.status === 401) {
+      clearToken()
+      if (typeof window !== 'undefined') window.location.href = '/login'
+    }
     throw new ApiError(res.status, body.error ?? `Request failed with status ${res.status}`)
   }
 
