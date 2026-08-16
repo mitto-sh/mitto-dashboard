@@ -4,14 +4,18 @@ import { renderWithTheme } from '../helpers/renderWithTheme'
 import { setToken } from '@/lib/auth'
 import type { Project } from '@/lib/types'
 
+let searchParams = new URLSearchParams()
+const routerReplace = vi.fn()
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ replace: vi.fn() }),
+  useRouter: () => ({ replace: routerReplace }),
+  useSearchParams: () => searchParams,
 }))
 
 vi.mock('@/lib/api', () => ({
   api: {
     listProjects: vi.fn(),
     createProject: vi.fn(),
+    listGithubInstallations: vi.fn(),
   },
 }))
 
@@ -22,6 +26,8 @@ const project: Project = { id: 'p1', name: 'My App', slug: 'my-app', repoUrl: nu
 describe('ProjectsPage', () => {
   beforeEach(() => {
     setToken('a-token')
+    searchParams = new URLSearchParams()
+    routerReplace.mockClear()
     vi.mocked(api.listProjects).mockResolvedValue([])
   })
 
@@ -63,5 +69,32 @@ describe('ProjectsPage', () => {
 
     expect(await screen.findByText('Name is required')).toBeInTheDocument()
     expect(api.createProject).not.toHaveBeenCalled()
+  })
+
+  it('opens the GitHub import modal', async () => {
+    vi.mocked(api.listGithubInstallations).mockResolvedValue([])
+    const { default: ProjectsPage } = await import('@/app/projects/page')
+    renderWithTheme(<ProjectsPage />)
+
+    await screen.findByText('No projects yet')
+    fireEvent.click(screen.getByText('Import from GitHub'))
+
+    expect(await screen.findByText('Connect GitHub')).toBeInTheDocument()
+  })
+
+  it('shows a success banner after connecting GitHub', async () => {
+    searchParams = new URLSearchParams('github_connected=1')
+    const { default: ProjectsPage } = await import('@/app/projects/page')
+    renderWithTheme(<ProjectsPage />)
+
+    expect(await screen.findByText(/GitHub connected/)).toBeInTheDocument()
+  })
+
+  it('shows a friendly error banner for a known github_error code', async () => {
+    searchParams = new URLSearchParams('github_error=invalid_state')
+    const { default: ProjectsPage } = await import('@/app/projects/page')
+    renderWithTheme(<ProjectsPage />)
+
+    expect(await screen.findByText(/expired or was invalid/)).toBeInTheDocument()
   })
 })

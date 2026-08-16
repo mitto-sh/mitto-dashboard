@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { api, ApiError, githubLoginUrl } from '@/lib/api'
-import { setToken } from '@/lib/auth'
+import { setToken, getToken } from '@/lib/auth'
 
 function mockFetchOnce(status: number, body: unknown) {
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
@@ -75,5 +75,17 @@ describe('api client', () => {
     await api.listEnvVars('svc-1')
     await api.upsertEnvVars('svc-1', [{ key: 'K', value: 'v', isSecret: false }])
     await api.deleteEnvVar('svc-1', 'K')
+    await api.githubInstallUrl()
+    await api.listGithubInstallations()
+    await api.listInstallationRepos('999')
+    await api.getRepoConfig('999', 'acme', 'api')
+  })
+
+  it('clears the token and redirects to /login on a 401', async () => {
+    setToken('stale-token')
+    mockFetchOnce(401, { error: 'Invalid or expired token' })
+
+    await expect(api.me()).rejects.toThrow(ApiError)
+    expect(getToken()).toBeNull()
   })
 })

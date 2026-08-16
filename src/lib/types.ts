@@ -55,3 +55,33 @@ export interface EnvVar {
   value: string
   isSecret: boolean
 }
+
+export interface GithubInstallation {
+  id: string
+  installationId: string
+  accountLogin: string
+  accountType: 'User' | 'Organization'
+}
+
+export interface GithubRepo {
+  id: number
+  name: string
+  full_name: string
+  private: boolean
+  default_branch: string
+  html_url: string
+}
+
+export interface MittoServiceConfig {
+  name: string
+  type: ServiceType
+  port?: number
+  buildCommand?: string
+  startCommand?: string
+  dockerfilePath?: string
+}
+
+export type RepoConfigResult =
+  | { found: false }
+  | { found: true; valid: true; config: { services: MittoServiceConfig[] } }
+  | { found: true; valid: false; error: string }

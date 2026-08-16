@@ -1,14 +1,52 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { AuthGuard } from '@/components/AuthGuard'
 import { Logo } from '@/components/Logo'
 import { ArrowRightIcon } from '@/components/icons'
+import { ImportFromGithubModal } from '@/components/ImportFromGithubModal'
 import { useThemeContext } from '@/components/ThemeProvider'
 import { api } from '@/lib/api'
 import { validateProjectForm } from '@/lib/validation'
 import type { Project } from '@/lib/types'
+
+const GITHUB_ERROR_MESSAGES: Record<string, string> = {
+  missing_params: 'GitHub did not send back the expected parameters. Try connecting again.',
+  invalid_state: 'That GitHub connection link expired or was invalid. Try connecting again.',
+}
+
+function GithubStatusBanner() {
+  const { theme } = useThemeContext()
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const connected = searchParams.get('github_connected')
+  const errorCode = searchParams.get('github_error')
+
+  useEffect(() => {
+    if (connected || errorCode) {
+      const timeout = setTimeout(() => router.replace('/projects'), 5000)
+      return () => clearTimeout(timeout)
+    }
+  }, [connected, errorCode, router])
+
+  if (connected) {
+    return (
+      <p className="mb-7 rounded-lg border px-4 py-[10px] text-[13px]" style={{ borderColor: theme.line, backgroundColor: theme.raised, color: theme.sec }}>
+        GitHub connected. You can now import repositories.
+      </p>
+    )
+  }
+  if (errorCode) {
+    return (
+      <p className="mb-7 rounded-lg border px-4 py-[10px] text-[13px]" style={{ borderColor: theme.dangerBorder, backgroundColor: theme.dangerBg, color: theme.danger }}>
+        {GITHUB_ERROR_MESSAGES[errorCode] ?? 'Something went wrong connecting GitHub.'}
+      </p>
+    )
+  }
+  return null
+}
 
 function ProjectsList() {
   const { theme } = useThemeContext()
@@ -16,6 +54,7 @@ function ProjectsList() {
   const [loading, setLoading] = useState(true)
   const [name, setName] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [showImportModal, setShowImportModal] = useState(false)
 
   useEffect(() => {
     api.listProjects().then((data) => {
@@ -37,6 +76,11 @@ function ProjectsList() {
     setName('')
   }
 
+  function handleImported(project: Project) {
+    setProjects((prev) => [...prev, project])
+    setShowImportModal(false)
+  }
+
   return (
     <div>
       <header className="flex h-14 items-center justify-between border-b px-6" style={{ borderColor: theme.subtle }}>
@@ -55,7 +99,11 @@ function ProjectsList() {
           </span>
         </div>
 
-        <form onSubmit={handleCreate} className="mb-9 flex gap-[10px]">
+        <Suspense fallback={null}>
+          <GithubStatusBanner />
+        </Suspense>
+
+        <form onSubmit={handleCreate} className="mb-3 flex gap-[10px]">
           <input
             aria-label="Project name"
             placeholder="New project name"
@@ -72,6 +120,13 @@ function ProjectsList() {
             Create
           </button>
         </form>
+        <button
+          onClick={() => setShowImportModal(true)}
+          className="mb-9 rounded-lg border px-[14px] py-[8px] text-[13px] font-medium transition-colors"
+          style={{ borderColor: theme.border, color: theme.sec }}
+        >
+          Import from GitHub
+        </button>
         {error && <p className="-mt-7 mb-7 text-xs" style={{ color: theme.danger }}>{error}</p>}
 
         {loading ? (
@@ -101,6 +156,10 @@ function ProjectsList() {
           </ul>
         )}
       </main>
+
+      {showImportModal && (
+        <ImportFromGithubModal onCancel={() => setShowImportModal(false)} onImported={handleImported} />
+      )}
     </div>
   )
 }

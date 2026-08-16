@@ -1,5 +1,8 @@
 import { getToken, clearToken } from './auth'
-import type { Project, Service, ServiceType, Deployment, EnvVar, User } from './types'
+import type {
+  Project, Service, ServiceType, Deployment, EnvVar, User,
+  GithubInstallation, GithubRepo, RepoConfigResult,
+} from './types'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000'
 
@@ -66,4 +69,11 @@ export const api = {
     request<EnvVar[]>(`/env/${serviceId}`, { method: 'PUT', body: JSON.stringify({ vars }) }),
   deleteEnvVar: (serviceId: string, key: string) =>
     request<void>(`/env/${serviceId}/${key}`, { method: 'DELETE' }),
+
+  githubInstallUrl: () => request<{ url: string }>('/github/install-url'),
+  listGithubInstallations: () => request<GithubInstallation[]>('/github/installations'),
+  listInstallationRepos: (installationId: string) =>
+    request<GithubRepo[]>(`/github/installations/${installationId}/repos`),
+  getRepoConfig: (installationId: string, owner: string, repo: string) =>
+    request<RepoConfigResult>(`/github/installations/${installationId}/repos/${owner}/${repo}/config`),
 }
