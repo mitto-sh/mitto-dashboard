@@ -16,7 +16,6 @@ vi.mock('@/lib/api', () => ({
     listProjects: vi.fn(),
     createProject: vi.fn(),
     deleteProject: vi.fn(),
-    listGithubInstallations: vi.fn(),
   },
 }))
 
@@ -28,10 +27,6 @@ const project: Project = {
 }
 const disabledProject: Project = { ...project, id: 'p2', name: 'Paused App', slug: 'paused-app', enabled: false }
 const publicProject: Project = { ...project, id: 'p3', name: 'Docs Site', slug: 'docs-site', isPrivate: false }
-
-async function openAddNewMenu() {
-  fireEvent.click(screen.getByRole('button', { name: /Add New/ }))
-}
 
 describe('ProjectsPage', () => {
   beforeEach(() => {
@@ -68,32 +63,19 @@ describe('ProjectsPage', () => {
     expect(screen.getAllByText('0 services')).toHaveLength(2)
   })
 
-  it('creates a project via the Add New menu and adds it to the list', async () => {
+  it('creates a project via the New project button and adds it to the list', async () => {
     vi.mocked(api.createProject).mockResolvedValue(project)
     const { default: ProjectsPage } = await import('@/app/projects/page')
     renderWithTheme(<ProjectsPage />)
 
     await screen.findByText('No projects yet')
-    await openAddNewMenu()
-    fireEvent.click(screen.getByRole('button', { name: 'Project' }))
+    fireEvent.click(screen.getByRole('button', { name: 'New project' }))
 
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'My App' } })
     fireEvent.click(screen.getByRole('button', { name: 'Create' }))
 
     await waitFor(() => expect(api.createProject).toHaveBeenCalledWith({ name: 'My App' }))
     expect(await screen.findByText('My App')).toBeInTheDocument()
-  })
-
-  it('opens the GitHub import modal via the Add New menu', async () => {
-    vi.mocked(api.listGithubInstallations).mockResolvedValue([])
-    const { default: ProjectsPage } = await import('@/app/projects/page')
-    renderWithTheme(<ProjectsPage />)
-
-    await screen.findByText('No projects yet')
-    await openAddNewMenu()
-    fireEvent.click(screen.getByRole('button', { name: 'Import from GitHub' }))
-
-    expect(await screen.findByText('Connect GitHub')).toBeInTheDocument()
   })
 
   it('shows a success banner after connecting GitHub', async () => {

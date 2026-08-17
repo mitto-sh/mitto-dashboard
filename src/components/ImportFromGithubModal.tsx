@@ -3,9 +3,10 @@
 import { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
 import { useThemeContext } from './ThemeProvider'
-import type { GithubInstallation, GithubRepo, MittoServiceConfig, Project, Service } from '@/lib/types'
+import type { GithubInstallation, GithubRepo, MittoServiceConfig, Service } from '@/lib/types'
 
 interface ImportFromGithubModalProps {
+  projectId: string
   onCancel: () => void
   onImported: (services: Service[]) => void
 }
@@ -15,7 +16,7 @@ type Step =
   | { name: 'no-installations' }
   | { name: 'pick-installation'; installations: GithubInstallation[] }
   | { name: 'pick-repo'; installation: GithubInstallation; repos: GithubRepo[] }
-  | { name: 'pick-target'; installation: GithubInstallation; repo: GithubRepo; detected: MittoServiceConfig[]; projects: Project[] }
+  | { name: 'confirm'; repo: GithubRepo; detected: MittoServiceConfig[] }
   | { name: 'importing' }
   | { name: 'error'; message: string }
 
@@ -25,12 +26,10 @@ function defaultServiceConfig(repo: GithubRepo): MittoServiceConfig[] {
   return [{ name: repo.name, type: 'web' }]
 }
 
-export function ImportFromGithubModal({ onCancel, onImported }: ImportFromGithubModalProps) {
+export function ImportFromGithubModal({ projectId, onCancel, onImported }: ImportFromGithubModalProps) {
   const { theme } = useThemeContext()
   const [step, setStep] = useState<Step>({ name: 'loading-installations' })
   const [filter, setFilter] = useState('')
-  const [targetProjectId, setTargetProjectId] = useState<string | 'new'>('new')
-  const [newProjectName, setNewProjectName] = useState('')
 
   useEffect(() => {
     api.listGithubInstallations()
@@ -61,14 +60,9 @@ export function ImportFromGithubModal({ onCancel, onImported }: ImportFromGithub
   async function handleSelectRepo(installation: GithubInstallation, repo: GithubRepo) {
     const [owner, name] = repo.full_name.split('/')
     try {
-      const [result, projects] = await Promise.all([
-        api.getRepoConfig(installation.installationId, owner!, name!),
-        api.listProjects(),
-      ])
+      const result = await api.getRepoConfig(installation.installationId, owner!, name!)
       const detected = result.found && result.valid ? result.config.services : defaultServiceConfig(repo)
-      setNewProjectName(repo.name)
-      setTargetProjectId(projects.length === 0 ? 'new' : 'new')
-      setStep({ name: 'pick-target', installation, repo, detected, projects })
+      setStep({ name: 'confirm', repo, detected })
     } catch (e) {
       setStep({ name: 'error', message: e instanceof Error ? e.message : 'Failed to read repo config' })
     }
@@ -77,10 +71,6 @@ export function ImportFromGithubModal({ onCancel, onImported }: ImportFromGithub
   async function handleImport(repo: GithubRepo, detected: MittoServiceConfig[]) {
     setStep({ name: 'importing' })
     try {
-      const projectId = targetProjectId === 'new'
-        ? (await api.createProject({ name: newProjectName })).id
-        : targetProjectId
-
       const created: Service[] = []
       for (const svc of detected) {
         const service = await api.createService({
@@ -182,7 +172,7 @@ export function ImportFromGithubModal({ onCancel, onImported }: ImportFromGithub
           </div>
         )}
 
-        {step.name === 'pick-target' && (
+        {step.name === 'confirm' && (
           <div className="flex flex-col gap-4 overflow-y-auto">
             <p className="text-sm" style={{ color: theme.ink }}>
               Importing <strong>{step.repo.full_name}</strong> as:
@@ -200,42 +190,13 @@ export function ImportFromGithubModal({ onCancel, onImported }: ImportFromGithub
               </ul>
             </div>
 
-            <div>
-              <label className="mb-[6px] block font-mono text-[11px] uppercase tracking-[0.08em]" style={{ color: theme.muted }}>
-                Project
-              </label>
-              <select
-                aria-label="Target project"
-                value={targetProjectId}
-                onChange={(e) => setTargetProjectId(e.target.value)}
-                className="w-full rounded-lg border px-3 py-2 text-sm outline-none"
-                style={inputStyle}
-              >
-                <option value="new">+ New project</option>
-                {step.projects.map((p) => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
-            </div>
-
-            {targetProjectId === 'new' && (
-              <input
-                aria-label="New project name"
-                value={newProjectName}
-                onChange={(e) => setNewProjectName(e.target.value)}
-                className="rounded-lg border px-3 py-2 text-sm outline-none"
-                style={inputStyle}
-              />
-            )}
-
             <div className="flex justify-end gap-[10px]">
               <button onClick={onCancel} className="rounded-lg px-[14px] py-[9px] text-sm" style={{ color: theme.sec }}>
                 Cancel
               </button>
               <button
                 onClick={() => handleImport(step.repo, step.detected)}
-                disabled={targetProjectId === 'new' && newProjectName.trim() === ''}
-                className="rounded-lg px-[18px] py-[9px] text-sm font-semibold disabled:opacity-50"
+                className="rounded-lg px-[18px] py-[9px] text-sm font-semibold"
                 style={{ backgroundColor: theme.accent, color: theme.accentInk }}
               >
                 Import

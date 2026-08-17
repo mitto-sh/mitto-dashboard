@@ -15,6 +15,9 @@ vi.mock('@/lib/api', () => ({
     listDeployments: vi.fn(),
     createService: vi.fn(),
     listEnvVars: vi.fn(),
+    listGithubInstallations: vi.fn(),
+    listInstallationRepos: vi.fn(),
+    getRepoConfig: vi.fn(),
   },
 }))
 
@@ -46,7 +49,7 @@ describe('ProjectPage (canvas)', () => {
     expect(screen.getByTestId('service-card-svc-1')).toBeInTheDocument()
   })
 
-  it('opens the add-service modal and creates a service', async () => {
+  it('opens the add-service chooser, picks manual configuration, and creates a service', async () => {
     const newService: Service = { ...service, id: 'svc-2', name: 'worker', type: 'worker' }
     vi.mocked(api.createService).mockResolvedValue(newService)
 
@@ -55,6 +58,7 @@ describe('ProjectPage (canvas)', () => {
 
     await screen.findByText('my-app')
     fireEvent.click(screen.getByRole('button', { name: 'Add service' }))
+    fireEvent.click(screen.getByText('Manual configuration'))
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'worker' } })
     fireEvent.change(screen.getByLabelText('Type'), { target: { value: 'worker' } })
     fireEvent.click(screen.getByRole('button', { name: 'Create service' }))
@@ -65,6 +69,36 @@ describe('ProjectPage (canvas)', () => {
       })
     })
     expect(await screen.findByTestId('service-card-svc-2')).toBeInTheDocument()
+  })
+
+  it('opens the add-service chooser, picks GitHub, and imports a service into this project', async () => {
+    const installation = { id: 'i1', installationId: '999', accountLogin: 'acme', accountType: 'Organization' as const }
+    const repo = { id: 1, name: 'api', full_name: 'acme/api', private: false, default_branch: 'main', html_url: 'https://github.com/acme/api' }
+    const importedService: Service = {
+      ...service, id: 'svc-3', name: 'api', repoUrl: repo.html_url, repoProvider: 'github', defaultBranch: 'main',
+    }
+    vi.mocked(api.listGithubInstallations).mockResolvedValue([installation])
+    vi.mocked(api.listInstallationRepos).mockResolvedValue([repo])
+    vi.mocked(api.getRepoConfig).mockResolvedValue({ found: false })
+    vi.mocked(api.createService).mockResolvedValue(importedService)
+
+    const { default: ProjectPage } = await import('@/app/projects/[id]/page')
+    renderWithTheme(<ProjectPage />)
+
+    await screen.findByText('my-app')
+    fireEvent.click(screen.getByRole('button', { name: 'Add service' }))
+    fireEvent.click(screen.getByText('Import from GitHub'))
+
+    fireEvent.click(await screen.findByText('acme'))
+    fireEvent.click(await screen.findByText('api'))
+    fireEvent.click(await screen.findByRole('button', { name: 'Import' }))
+
+    await waitFor(() => {
+      expect(api.createService).toHaveBeenCalledWith(
+        expect.objectContaining({ projectId: 'p1', name: 'api', repoProvider: 'github' }),
+      )
+    })
+    expect(await screen.findByTestId('service-card-svc-3')).toBeInTheDocument()
   })
 
   it('opens the service detail panel when a service card is clicked', async () => {

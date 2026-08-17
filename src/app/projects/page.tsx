@@ -4,8 +4,7 @@ import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { AuthGuard } from '@/components/AuthGuard'
 import { Logo } from '@/components/Logo'
-import { SearchIcon, ChevronDownIcon, PlusIcon } from '@/components/icons'
-import { ImportFromGithubModal } from '@/components/ImportFromGithubModal'
+import { SearchIcon, PlusIcon } from '@/components/icons'
 import { CreateProjectModal } from '@/components/CreateProjectModal'
 import { DeleteProjectDialog } from '@/components/DeleteProjectDialog'
 import { ProjectCard } from '@/components/ProjectCard'
@@ -49,57 +48,12 @@ function GithubStatusBanner() {
   return null
 }
 
-function AddNewMenu({ onCreateProject, onImportFromGithub }: { onCreateProject: () => void; onImportFromGithub: () => void }) {
-  const { theme } = useThemeContext()
-  const [open, setOpen] = useState(false)
-
-  return (
-    <div className="relative">
-      <button
-        onClick={() => setOpen((prev) => !prev)}
-        className="inline-flex items-center gap-[6px] rounded-lg px-[16px] py-[10px] text-[13px] font-semibold transition-colors"
-        style={{ backgroundColor: theme.accent, color: theme.accentInk }}
-      >
-        <PlusIcon size={13} />
-        Add New…
-        <ChevronDownIcon size={13} />
-      </button>
-
-      {open && (
-        <>
-          <button aria-label="Close menu" className="fixed inset-0 z-10 cursor-default" onClick={() => setOpen(false)} />
-          <div
-            className="absolute right-0 top-[calc(100%+6px)] z-20 w-52 overflow-hidden rounded-lg border py-1"
-            style={{ borderColor: theme.border, backgroundColor: theme.raised, boxShadow: `0 8px 24px ${theme.panelShadow}` }}
-          >
-            <button
-              onClick={() => { setOpen(false); onCreateProject() }}
-              className="block w-full px-3 py-2 text-left text-sm transition-colors"
-              style={{ color: theme.ink }}
-            >
-              Project
-            </button>
-            <button
-              onClick={() => { setOpen(false); onImportFromGithub() }}
-              className="block w-full px-3 py-2 text-left text-sm transition-colors"
-              style={{ color: theme.ink }}
-            >
-              Import from GitHub
-            </button>
-          </div>
-        </>
-      )}
-    </div>
-  )
-}
-
 function ProjectsList() {
   const { theme } = useThemeContext()
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState('')
   const [showCreateModal, setShowCreateModal] = useState(false)
-  const [showImportModal, setShowImportModal] = useState(false)
   const [deletingProject, setDeletingProject] = useState<Project | null>(null)
 
   useEffect(() => {
@@ -112,13 +66,6 @@ function ProjectsList() {
   function handleCreated(project: Project) {
     setProjects((prev) => [...prev, project])
     setShowCreateModal(false)
-  }
-
-  async function handleImported() {
-    setShowImportModal(false)
-    // Services may have landed in a new project or an existing one — simplest
-    // to just refresh the list rather than guess which.
-    setProjects(await api.listProjects())
   }
 
   function handleDeleted() {
@@ -168,10 +115,14 @@ function ProjectsList() {
               style={{ borderColor: theme.border, backgroundColor: theme.surface, color: theme.ink }}
             />
           </div>
-          <AddNewMenu
-            onCreateProject={() => setShowCreateModal(true)}
-            onImportFromGithub={() => setShowImportModal(true)}
-          />
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="inline-flex items-center gap-[6px] rounded-lg px-[16px] py-[10px] text-[13px] font-semibold transition-colors"
+            style={{ backgroundColor: theme.accent, color: theme.accentInk }}
+          >
+            <PlusIcon size={13} />
+            New project
+          </button>
         </div>
 
         {loading ? (
@@ -194,10 +145,6 @@ function ProjectsList() {
 
       {showCreateModal && (
         <CreateProjectModal onCancel={() => setShowCreateModal(false)} onCreated={handleCreated} />
-      )}
-
-      {showImportModal && (
-        <ImportFromGithubModal onCancel={() => setShowImportModal(false)} onImported={handleImported} />
       )}
 
       {deletingProject && (

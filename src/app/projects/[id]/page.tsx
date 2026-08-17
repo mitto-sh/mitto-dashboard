@@ -6,6 +6,8 @@ import Link from 'next/link'
 import { AuthGuard } from '@/components/AuthGuard'
 import { Canvas } from '@/components/Canvas'
 import { AddServiceModal } from '@/components/AddServiceModal'
+import { AddServiceChooserModal } from '@/components/AddServiceChooserModal'
+import { ImportFromGithubModal } from '@/components/ImportFromGithubModal'
 import { ServiceDetailPanel } from '@/components/ServiceDetailPanel'
 import { Logo } from '@/components/Logo'
 import { PlusIcon, SettingsIcon } from '@/components/icons'
@@ -13,12 +15,14 @@ import { useThemeContext } from '@/components/ThemeProvider'
 import { api } from '@/lib/api'
 import type { Project, Service, Deployment } from '@/lib/types'
 
+type AddServiceStep = 'closed' | 'choose' | 'manual' | 'github'
+
 function ProjectCanvasView({ projectId }: { projectId: string }) {
   const { theme, dict } = useThemeContext()
   const [project, setProject] = useState<Project | null>(null)
   const [latestDeployments, setLatestDeployments] = useState<Record<string, Deployment | undefined>>({})
   const [selectedService, setSelectedService] = useState<Service | null>(null)
-  const [showAddModal, setShowAddModal] = useState(false)
+  const [addServiceStep, setAddServiceStep] = useState<AddServiceStep>('closed')
 
   useEffect(() => {
     api.getProject(projectId).then(async (p) => {
@@ -41,7 +45,12 @@ function ProjectCanvasView({ projectId }: { projectId: string }) {
       port: data.port,
     })
     setProject((prev) => (prev ? { ...prev, services: [...(prev.services ?? []), service] } : prev))
-    setShowAddModal(false)
+    setAddServiceStep('closed')
+  }
+
+  function handleGithubImported(services: Service[]) {
+    setProject((prev) => (prev ? { ...prev, services: [...(prev.services ?? []), ...services] } : prev))
+    setAddServiceStep('closed')
   }
 
   function handleServiceDeleted(serviceId: string) {
@@ -91,7 +100,7 @@ function ProjectCanvasView({ projectId }: { projectId: string }) {
             <SettingsIcon size={14} />
           </Link>
           <button
-            onClick={() => setShowAddModal(true)}
+            onClick={() => setAddServiceStep('choose')}
             className="inline-flex items-center gap-[6px] rounded-lg px-[14px] py-[7px] text-[12.5px] font-semibold transition-colors"
             style={{ backgroundColor: theme.accent, color: theme.accentInk }}
           >
@@ -107,14 +116,30 @@ function ProjectCanvasView({ projectId }: { projectId: string }) {
         latestDeployments={latestDeployments}
         selectedServiceId={selectedService?.id ?? null}
         onSelectService={setSelectedService}
-        onAddService={() => setShowAddModal(true)}
+        onAddService={() => setAddServiceStep('choose')}
       />
 
-      {showAddModal && (
+      {addServiceStep === 'choose' && (
+        <AddServiceChooserModal
+          onCancel={() => setAddServiceStep('closed')}
+          onManual={() => setAddServiceStep('manual')}
+          onGithub={() => setAddServiceStep('github')}
+        />
+      )}
+
+      {addServiceStep === 'manual' && (
         <AddServiceModal
           projectSlug={project.slug}
-          onCancel={() => setShowAddModal(false)}
+          onCancel={() => setAddServiceStep('closed')}
           onCreate={handleCreateService}
+        />
+      )}
+
+      {addServiceStep === 'github' && (
+        <ImportFromGithubModal
+          projectId={projectId}
+          onCancel={() => setAddServiceStep('closed')}
+          onImported={handleGithubImported}
         />
       )}
 

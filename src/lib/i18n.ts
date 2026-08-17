@@ -16,6 +16,11 @@ export interface Dictionary {
   type: string
   port: string
   optional: string
+  addServiceChooserTitle: string
+  manualConfig: string
+  manualConfigDesc: string
+  importFromGithub: string
+  importFromGithubDesc: string
 }
 
 export const EN: Dictionary = {
@@ -34,6 +39,11 @@ export const EN: Dictionary = {
   type: 'Type',
   port: 'Port',
   optional: '— optional',
+  addServiceChooserTitle: 'How do you want to add a service?',
+  manualConfig: 'Manual configuration',
+  manualConfigDesc: 'Define name, type and port yourself',
+  importFromGithub: 'Import from GitHub',
+  importFromGithubDesc: 'Pick a repo — services are detected from mitto.yaml',
 }
 
 export const ES: Dictionary = {
@@ -52,6 +62,11 @@ export const ES: Dictionary = {
   type: 'Tipo',
   port: 'Puerto',
   optional: '— opcional',
+  addServiceChooserTitle: '¿Cómo querés agregar el servicio?',
+  manualConfig: 'Configuración manual',
+  manualConfigDesc: 'Definí nombre, tipo y puerto vos mismo',
+  importFromGithub: 'Importar desde GitHub',
+  importFromGithubDesc: 'Elegí un repo — los servicios se detectan desde mitto.yaml',
 }
 
 export const DICTIONARIES: Record<Lang, Dictionary> = { en: EN, es: ES }
