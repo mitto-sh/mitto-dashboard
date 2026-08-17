@@ -13,6 +13,7 @@ export interface Project {
   region: string
   isPrivate: boolean
   enabled: boolean
+  createdAt: string
   services?: Service[]
 }
 

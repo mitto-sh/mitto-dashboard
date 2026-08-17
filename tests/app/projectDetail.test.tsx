@@ -4,9 +4,8 @@ import { renderWithTheme } from '../helpers/renderWithTheme'
 import { setToken } from '@/lib/auth'
 import type { Project, Service } from '@/lib/types'
 
-const routerPush = vi.fn()
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ replace: vi.fn(), push: routerPush }),
+  useRouter: () => ({ replace: vi.fn() }),
   useParams: () => ({ id: 'p1' }),
 }))
 
@@ -16,8 +15,6 @@ vi.mock('@/lib/api', () => ({
     listDeployments: vi.fn(),
     createService: vi.fn(),
     listEnvVars: vi.fn(),
-    updateProject: vi.fn(),
-    deleteProject: vi.fn(),
   },
 }))
 
@@ -30,7 +27,7 @@ const service: Service = {
 }
 const project: Project = {
   id: 'p1', name: 'My App', slug: 'my-app', region: 'us-east-1',
-  isPrivate: true, enabled: true, services: [service],
+  isPrivate: true, enabled: true, createdAt: new Date().toISOString(), services: [service],
 }
 
 describe('ProjectPage (canvas)', () => {
@@ -80,19 +77,12 @@ describe('ProjectPage (canvas)', () => {
     expect(await screen.findByLabelText('Close panel')).toBeInTheDocument()
   })
 
-  it('opens project settings, saves an update, and reflects it on the page', async () => {
-    const updated: Project = { ...project, name: 'Renamed', slug: 'renamed', services: [service] }
-    vi.mocked(api.updateProject).mockResolvedValue(updated)
-
+  it('links the settings icon to the project settings page', async () => {
     const { default: ProjectPage } = await import('@/app/projects/[id]/page')
     renderWithTheme(<ProjectPage />)
 
     await screen.findByText('my-app')
-    fireEvent.click(screen.getByLabelText('Project settings'))
-    fireEvent.click(await screen.findByRole('button', { name: 'Save' }))
-
-    await waitFor(() => expect(api.updateProject).toHaveBeenCalled())
-    expect(await screen.findByText('renamed')).toBeInTheDocument()
+    expect(screen.getByLabelText('Project settings')).toHaveAttribute('href', '/projects/p1/settings')
   })
 
   it('shows a disabled badge when the project is disabled', async () => {
@@ -102,19 +92,5 @@ describe('ProjectPage (canvas)', () => {
     renderWithTheme(<ProjectPage />)
 
     expect(await screen.findByText('disabled')).toBeInTheDocument()
-  })
-
-  it('navigates to /projects after deleting the project from settings', async () => {
-    vi.mocked(api.deleteProject).mockResolvedValue(undefined)
-
-    const { default: ProjectPage } = await import('@/app/projects/[id]/page')
-    renderWithTheme(<ProjectPage />)
-
-    await screen.findByText('my-app')
-    fireEvent.click(screen.getByLabelText('Project settings'))
-    fireEvent.click(await screen.findByRole('button', { name: 'Delete project' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Confirm' }))
-
-    await waitFor(() => expect(routerPush).toHaveBeenCalledWith('/projects'))
   })
 })

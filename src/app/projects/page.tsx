@@ -2,14 +2,15 @@
 
 import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import Link from 'next/link'
 import { AuthGuard } from '@/components/AuthGuard'
 import { Logo } from '@/components/Logo'
-import { ArrowRightIcon } from '@/components/icons'
+import { SearchIcon, ChevronDownIcon, PlusIcon } from '@/components/icons'
 import { ImportFromGithubModal } from '@/components/ImportFromGithubModal'
+import { CreateProjectModal } from '@/components/CreateProjectModal'
+import { DeleteProjectDialog } from '@/components/DeleteProjectDialog'
+import { ProjectCard } from '@/components/ProjectCard'
 import { useThemeContext } from '@/components/ThemeProvider'
 import { api } from '@/lib/api'
-import { validateProjectForm } from '@/lib/validation'
 import type { Project } from '@/lib/types'
 
 const GITHUB_ERROR_MESSAGES: Record<string, string> = {
@@ -33,14 +34,14 @@ function GithubStatusBanner() {
 
   if (connected) {
     return (
-      <p className="mb-7 rounded-lg border px-4 py-[10px] text-[13px]" style={{ borderColor: theme.line, backgroundColor: theme.raised, color: theme.sec }}>
+      <p className="mb-6 rounded-lg border px-4 py-[10px] text-[13px]" style={{ borderColor: theme.line, backgroundColor: theme.raised, color: theme.sec }}>
         GitHub connected. You can now import repositories.
       </p>
     )
   }
   if (errorCode) {
     return (
-      <p className="mb-7 rounded-lg border px-4 py-[10px] text-[13px]" style={{ borderColor: theme.dangerBorder, backgroundColor: theme.dangerBg, color: theme.danger }}>
+      <p className="mb-6 rounded-lg border px-4 py-[10px] text-[13px]" style={{ borderColor: theme.dangerBorder, backgroundColor: theme.dangerBg, color: theme.danger }}>
         {GITHUB_ERROR_MESSAGES[errorCode] ?? 'Something went wrong connecting GitHub.'}
       </p>
     )
@@ -48,13 +49,58 @@ function GithubStatusBanner() {
   return null
 }
 
+function AddNewMenu({ onCreateProject, onImportFromGithub }: { onCreateProject: () => void; onImportFromGithub: () => void }) {
+  const { theme } = useThemeContext()
+  const [open, setOpen] = useState(false)
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen((prev) => !prev)}
+        className="inline-flex items-center gap-[6px] rounded-lg px-[16px] py-[10px] text-[13px] font-semibold transition-colors"
+        style={{ backgroundColor: theme.accent, color: theme.accentInk }}
+      >
+        <PlusIcon size={13} />
+        Add New…
+        <ChevronDownIcon size={13} />
+      </button>
+
+      {open && (
+        <>
+          <button aria-label="Close menu" className="fixed inset-0 z-10 cursor-default" onClick={() => setOpen(false)} />
+          <div
+            className="absolute right-0 top-[calc(100%+6px)] z-20 w-52 overflow-hidden rounded-lg border py-1"
+            style={{ borderColor: theme.border, backgroundColor: theme.raised, boxShadow: `0 8px 24px ${theme.panelShadow}` }}
+          >
+            <button
+              onClick={() => { setOpen(false); onCreateProject() }}
+              className="block w-full px-3 py-2 text-left text-sm transition-colors"
+              style={{ color: theme.ink }}
+            >
+              Project
+            </button>
+            <button
+              onClick={() => { setOpen(false); onImportFromGithub() }}
+              className="block w-full px-3 py-2 text-left text-sm transition-colors"
+              style={{ color: theme.ink }}
+            >
+              Import from GitHub
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 function ProjectsList() {
   const { theme } = useThemeContext()
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
-  const [name, setName] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  const [query, setQuery] = useState('')
+  const [showCreateModal, setShowCreateModal] = useState(false)
   const [showImportModal, setShowImportModal] = useState(false)
+  const [deletingProject, setDeletingProject] = useState<Project | null>(null)
 
   useEffect(() => {
     api.listProjects().then((data) => {
@@ -63,17 +109,9 @@ function ProjectsList() {
     }).catch(() => setLoading(false))
   }, [])
 
-  async function handleCreate(e: React.FormEvent) {
-    e.preventDefault()
-    const result = validateProjectForm(name)
-    if (!result.valid || !result.data) {
-      setError(result.error ?? 'Invalid name')
-      return
-    }
-    setError(null)
-    const project = await api.createProject(result.data)
+  function handleCreated(project: Project) {
     setProjects((prev) => [...prev, project])
-    setName('')
+    setShowCreateModal(false)
   }
 
   async function handleImported() {
@@ -82,6 +120,15 @@ function ProjectsList() {
     // to just refresh the list rather than guess which.
     setProjects(await api.listProjects())
   }
+
+  function handleDeleted() {
+    setProjects((prev) => prev.filter((p) => p.id !== deletingProject?.id))
+    setDeletingProject(null)
+  }
+
+  const filtered = projects.filter((p) =>
+    p.name.toLowerCase().includes(query.toLowerCase()) || p.slug.toLowerCase().includes(query.toLowerCase()),
+  )
 
   return (
     <div>
@@ -93,8 +140,8 @@ function ProjectsList() {
         <div className="h-7 w-7 rounded-full border" style={{ borderColor: theme.border, backgroundColor: theme.raised }} />
       </header>
 
-      <main className="mx-auto max-w-[720px] px-6 py-14">
-        <div className="mb-7 flex items-baseline gap-3">
+      <main className="mx-auto max-w-[1040px] px-6 py-12">
+        <div className="mb-6 flex items-baseline gap-3">
           <h1 className="text-xl font-semibold tracking-tight" style={{ color: theme.ink }}>Projects</h1>
           <span className="font-mono text-xs" style={{ color: theme.muted }}>
             {loading ? '' : String(projects.length).padStart(2, '0')}
@@ -105,31 +152,27 @@ function ProjectsList() {
           <GithubStatusBanner />
         </Suspense>
 
-        <form onSubmit={handleCreate} className="mb-3 flex gap-[10px]">
-          <input
-            aria-label="Project name"
-            placeholder="New project name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="flex-1 rounded-lg border px-[14px] py-[10px] text-sm outline-none transition-colors"
-            style={{ borderColor: theme.border, backgroundColor: theme.surface, color: theme.ink }}
+        <div className="mb-8 flex items-center gap-3">
+          <div className="relative flex-1">
+            <SearchIcon
+              size={14}
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2"
+              style={{ color: theme.muted }}
+            />
+            <input
+              aria-label="Search projects"
+              placeholder="Search projects…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="w-full rounded-lg border py-[10px] pl-9 pr-3 text-sm outline-none transition-colors"
+              style={{ borderColor: theme.border, backgroundColor: theme.surface, color: theme.ink }}
+            />
+          </div>
+          <AddNewMenu
+            onCreateProject={() => setShowCreateModal(true)}
+            onImportFromGithub={() => setShowImportModal(true)}
           />
-          <button
-            type="submit"
-            className="rounded-lg px-[18px] py-[10px] text-[13px] font-semibold transition-colors"
-            style={{ backgroundColor: theme.accent, color: theme.accentInk }}
-          >
-            Create
-          </button>
-        </form>
-        <button
-          onClick={() => setShowImportModal(true)}
-          className="mb-9 rounded-lg border px-[14px] py-[8px] text-[13px] font-medium transition-colors"
-          style={{ borderColor: theme.border, color: theme.sec }}
-        >
-          Import from GitHub
-        </button>
-        {error && <p className="-mt-7 mb-7 text-xs" style={{ color: theme.danger }}>{error}</p>}
+        </div>
 
         {loading ? (
           <p className="font-mono text-sm" style={{ color: theme.muted }}>Loading…</p>
@@ -138,39 +181,31 @@ function ProjectsList() {
             <p className="text-sm" style={{ color: theme.sec }}>No projects yet</p>
             <p className="mt-2 font-mono text-xs" style={{ color: theme.muted }}>create one above to get started</p>
           </div>
+        ) : filtered.length === 0 ? (
+          <p className="font-mono text-sm" style={{ color: theme.muted }}>No projects match "{query}"</p>
         ) : (
-          <ul className="flex flex-col gap-[10px]">
-            {projects.map((p) => (
-              <li key={p.id}>
-                <Link
-                  href={`/projects/${p.id}`}
-                  className="flex items-center justify-between rounded-xl border p-[18px_20px] transition-colors"
-                  style={{ borderColor: theme.line, backgroundColor: theme.surface }}
-                >
-                  <div className="flex flex-col gap-[5px]">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium" style={{ color: theme.ink }}>{p.name}</span>
-                      {!p.enabled && (
-                        <span
-                          className="rounded-[5px] border px-[6px] py-[1px] font-mono text-[9px] font-medium uppercase tracking-[0.08em]"
-                          style={{ color: theme.danger, borderColor: theme.dangerBorder, backgroundColor: theme.dangerBg }}
-                        >
-                          disabled
-                        </span>
-                      )}
-                    </div>
-                    <span className="font-mono text-xs" style={{ color: theme.muted }}>{p.slug}</span>
-                  </div>
-                  <ArrowRightIcon size={15} style={{ color: theme.faint }} />
-                </Link>
-              </li>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {filtered.map((p) => (
+              <ProjectCard key={p.id} project={p} onRequestDelete={setDeletingProject} />
             ))}
-          </ul>
+          </div>
         )}
       </main>
 
+      {showCreateModal && (
+        <CreateProjectModal onCancel={() => setShowCreateModal(false)} onCreated={handleCreated} />
+      )}
+
       {showImportModal && (
         <ImportFromGithubModal onCancel={() => setShowImportModal(false)} onImported={handleImported} />
+      )}
+
+      {deletingProject && (
+        <DeleteProjectDialog
+          project={deletingProject}
+          onCancel={() => setDeletingProject(null)}
+          onDeleted={handleDeleted}
+        />
       )}
     </div>
   )

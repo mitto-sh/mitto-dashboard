@@ -92,6 +92,27 @@ export function MoonIcon(props: IconProps) {
   return <Icon {...props} d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
 }
 
+export function SearchIcon(props: IconProps) {
+  return <Icon {...props} d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16M21 21l-4.35-4.35" />
+}
+
+export function MoreHorizontalIcon(props: IconProps) {
+  return <Icon {...props} d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2M19 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2M5 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2" />
+}
+
+export function ChevronDownIcon(props: IconProps) {
+  return <Icon {...props} d="m6 9 6 6 6-6" />
+}
+
+export function LockIcon(props: IconProps) {
+  return (
+    <Icon
+      {...props}
+      d="M19 11H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2M7 11V7a5 5 0 0 1 10 0v4"
+    />
+  )
+}
+
 const TYPE_ICONS = {
   web: GlobeIcon,
   worker: SettingsIcon,
