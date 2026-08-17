@@ -6,7 +6,7 @@ import type { Service, Deployment } from '@/lib/types'
 import { loadPositions, savePosition, resolvePosition, type Position } from '@/lib/canvasPositions'
 import { useThemeContext } from './ThemeProvider'
 import { ServiceCard } from './ServiceCard'
-import { PlusIcon, SunIcon, MoonIcon } from './icons'
+import { PlusIcon } from './icons'
 
 interface CanvasProps {
   projectId: string
@@ -25,7 +25,7 @@ export function Canvas({
   onSelectService,
   onAddService,
 }: CanvasProps) {
-  const { theme, mode, toggleTheme, lang, dict, toggleLang } = useThemeContext()
+  const { theme, dict } = useThemeContext()
   const [positions, setPositions] = useState<Record<string, Position>>({})
 
   useEffect(() => {
@@ -88,26 +88,8 @@ export function Canvas({
           ))
         )}
         {services.length > 0 && (
-          <div className="pointer-events-none absolute bottom-4 left-5 flex items-center gap-[10px]">
-            <button
-              onClick={toggleTheme}
-              aria-label="Toggle theme"
-              className="pointer-events-auto inline-flex h-7 w-7 items-center justify-center rounded-lg border transition-colors"
-              style={{ backgroundColor: theme.surface, borderColor: theme.border, color: theme.sec }}
-            >
-              {mode === 'graphite' ? <SunIcon size={13} /> : <MoonIcon size={13} />}
-            </button>
-            <button
-              onClick={toggleLang}
-              aria-label="Toggle language"
-              className="pointer-events-auto inline-flex h-7 items-center justify-center rounded-lg border px-[10px] font-mono text-[11px] transition-colors"
-              style={{ backgroundColor: theme.surface, borderColor: theme.border, color: theme.sec }}
-            >
-              {lang === 'es' ? 'EN' : 'ES'}
-            </button>
-            <span className="font-mono text-[11px]" style={{ color: theme.faint }}>
-              {String(services.length).padStart(2, '0')} {dict.servicesFooter}
-            </span>
+          <div className="pointer-events-none absolute bottom-4 right-5 font-mono text-[11px]" style={{ color: theme.faint }}>
+            {String(services.length).padStart(2, '0')} {dict.servicesFooter}
           </div>
         )}
       </div>

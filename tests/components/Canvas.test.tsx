@@ -46,11 +46,14 @@ describe('Canvas', () => {
     expect(onSelectService).toHaveBeenCalledWith(services[1])
   })
 
-  it('shows the footer counter and theme/language controls when there are services', () => {
+  it('shows the footer counter when there are services', () => {
     renderCanvas()
     expect(screen.getByText(/02 services/)).toBeInTheDocument()
-    expect(screen.getByLabelText('Toggle theme')).toBeInTheDocument()
-    expect(screen.getByLabelText('Toggle language')).toBeInTheDocument()
+  })
+
+  it('omits the footer counter when there are no services', () => {
+    renderCanvas({ services: [] })
+    expect(screen.queryByText(/^\d{2} services$/)).not.toBeInTheDocument()
   })
 
   it('shows the empty state and calls onAddService when there are no services', () => {
@@ -60,15 +63,5 @@ describe('Canvas', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Add service' }))
     expect(onAddService).toHaveBeenCalled()
-  })
-
-  it('toggles theme and language via the bottom-left controls', () => {
-    renderCanvas()
-    fireEvent.click(screen.getByLabelText('Toggle language'))
-    expect(screen.getByLabelText('Toggle language')).toHaveTextContent('EN')
-
-    fireEvent.click(screen.getByLabelText('Toggle theme'))
-    // dot-pulse animation aside, a successful re-render without crash is the assertion here
-    expect(screen.getByTestId('service-card-svc-1')).toBeInTheDocument()
   })
 })
