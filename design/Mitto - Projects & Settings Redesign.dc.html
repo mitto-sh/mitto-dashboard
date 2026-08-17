@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;font-family:'IBM Plex Sans',sans-serif}
+input::placeholder{color:#9BA0A8}
+@keyframes shimmer{0%{background-position:-200px 0}100%{background-position:200px 0}}
+@keyframes dotPulse{0%,100%{opacity:1}50%{opacity:.55}}
+</style>
+</helmet>
+<div style="background:{{ t.canvas }};min-height:100vh;color:{{ t.ink }}" data-screen-label="Mitto Redesign">
+  <a name="top"></a>
+  <header style="display:flex;height:56px;align-items:center;justify-content:space-between;border-bottom:1px solid {{ t.subtle }};background:{{ t.headerBg }};padding:0 20px">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="width:11px;height:11px;background:{{ t.accent }};transform:rotate(45deg);border-radius:2.5px;display:inline-block"></span>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:{{ t.ink }}">mitto</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:2px;background:{{ t.chip }};border:1px solid {{ t.chipBorder }};border-radius:8px;padding:2px">
+        <button onClick="{{ goProjects }}" style="border:none;border-radius:6px;padding:6px 12px;font-size:12.5px;font-weight:500;cursor:pointer;background:{{ tabProjectsBg }};color:{{ tabProjectsColor }};transition:background .15s ease,color .15s ease">Projects</button>
+        <button onClick="{{ goSettings }}" style="border:none;border-radius:6px;padding:6px 12px;font-size:12.5px;font-weight:500;cursor:pointer;background:{{ tabSettingsBg }};color:{{ tabSettingsColor }};transition:background .15s ease,color .15s ease">Project settings</button>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <button onClick="{{ toggleTheme }}" aria-label="Toggle theme" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;background:{{ t.surface }};border:1px solid {{ t.border }};color:{{ t.sec }};cursor:pointer;transition:color .15s ease,border-color .15s ease" style-hover="color:{{ t.ink }};border-color:{{ t.faint }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ themeIconD }}"></path></svg></button>
+      <div style="height:28px;width:28px;border-radius:50%;border:1px solid {{ t.border }};background:{{ t.raised }}"></div>
+    </div>
+  </header>
+
+  <sc-if value="{{ isProjects }}" hint-placeholder-val="{{ true }}">
+  <main style="max-width:1040px;margin:0 auto;padding:48px 24px 80px">
+    <div style="margin-bottom:6px;display:flex;align-items:baseline;gap:12px">
+      <h1 style="margin:0;font-size:24px;font-weight:600;letter-spacing:-0.015em;color:{{ t.ink }}">Projects</h1>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:{{ t.muted }}">{{ countLabel }}</span>
+    </div>
+    <p style="margin:0 0 28px;font-size:13.5px;color:{{ t.sec }}">Everything you're running with Mitto, in one place.</p>
+
+    <div style="margin-bottom:24px;display:flex;align-items:center;gap:10px">
+      <div style="position:relative;flex:1">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{ t.muted }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);pointer-events:none"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16M21 21l-4.35-4.35"></path></svg>
+        <input aria-label="Search projects" placeholder="Search projects…" style="width:100%;box-sizing:border-box;border-radius:8px;border:1px solid {{ t.border }};background:{{ t.surface }};padding:10px 12px 10px 34px;font-size:13.5px;color:{{ t.ink }};outline:none;transition:border-color .15s ease" style-focus="border-color:{{ t.accent }}" />
+      </div>
+      <div style="position:relative">
+        <button onClick="{{ toggleAddMenu }}" style="display:inline-flex;align-items:center;gap:6px;border-radius:8px;background:{{ t.accent }};border:none;padding:10px 16px;font-size:13px;font-weight:600;color:{{ t.accentInk }};cursor:pointer;transition:background .15s ease" style-hover="background:{{ t.accentHover }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5v14"></path></svg>Add New…<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg></button>
+        <sc-if value="{{ addMenuOpen }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;right:0;top:calc(100% + 6px);z-index:20;width:200px;overflow:hidden;border-radius:10px;border:1px solid {{ t.border }};background:{{ t.raised }};padding:4px;box-shadow:0 8px 24px {{ t.panelShadow }}">
+            <button onClick="{{ openCreateModal }}" style="display:block;width:100%;box-sizing:border-box;border:none;background:none;border-radius:6px;padding:9px 10px;text-align:left;font-size:13.5px;color:{{ t.ink }};cursor:pointer" style-hover="background:{{ t.chip }}">New project</button>
+            <button style="display:block;width:100%;box-sizing:border-box;border:none;background:none;border-radius:6px;padding:9px 10px;text-align:left;font-size:13.5px;color:{{ t.ink }};cursor:pointer" style-hover="background:{{ t.chip }}">Import from GitHub</button>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+
+    <sc-if value="{{ loading }}" hint-placeholder-val="{{ false }}">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px">
+        <sc-for list="{{ skeletons }}" as="sk" hint-placeholder-count="3">
+          <div style="border-radius:12px;border:1px solid {{ t.line }};background:{{ t.surface }};padding:20px;height:112px">
+            <div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(90deg,{{ t.chip }} 25%,{{ t.line }} 37%,{{ t.chip }} 63%);background-size:400px 100%;animation:shimmer 1.4s ease infinite"></div>
+            <div style="margin-top:14px;width:60%;height:12px;border-radius:4px;background:linear-gradient(90deg,{{ t.chip }} 25%,{{ t.line }} 37%,{{ t.chip }} 63%);background-size:400px 100%;animation:shimmer 1.4s ease infinite"></div>
+            <div style="margin-top:8px;width:40%;height:10px;border-radius:4px;background:linear-gradient(90deg,{{ t.chip }} 25%,{{ t.line }} 37%,{{ t.chip }} 63%);background-size:400px 100%;animation:shimmer 1.4s ease infinite"></div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ empty }}" hint-placeholder-val="{{ false }}">
+      <div style="border:1px dashed {{ t.dashed }};border-radius:14px;padding:64px 24px;text-align:center">
+        <div style="margin:0 auto 16px;width:56px;height:56px;border:1px dashed {{ t.dashed }};border-radius:14px;display:flex;align-items:center;justify-content:center">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{{ t.faint }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5v14"></path></svg>
+        </div>
+        <p style="margin:0;font-size:14.5px;color:{{ t.sec }}">No projects yet</p>
+        <p style="margin:8px 0 20px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:{{ t.muted }}">create one to get started</p>
+        <button onClick="{{ openCreateModal }}" style="display:inline-flex;align-items:center;gap:6px;border-radius:8px;background:{{ t.accent }};border:none;padding:10px 18px;font-size:13px;font-weight:600;color:{{ t.accentInk }};cursor:pointer">New project</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ true }}">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px">
+        <sc-for list="{{ projects }}" as="p" hint-placeholder-count="3">
+          <div style="position:relative;border-radius:12px;border:1px solid {{ t.line }};background:{{ t.surface }};padding:18px 20px;transition:border-color .15s ease,transform .15s ease,box-shadow .15s ease" style-hover="border-color:{{ p.hoverBorder }};transform:translateY(-2px);box-shadow:{{ t.shadowCard }}">
+            <a href="#" style="display:block;text-decoration:none;color:inherit">
+              <div style="display:flex;align-items:flex-start;gap:12px">
+                <div style="flex:none;width:36px;height:36px;border-radius:9px;background:{{ p.avatarBg }};display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;color:#fff">{{ p.initial }}</div>
+                <div style="min-width:0;flex:1">
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <span style="font-size:14.5px;font-weight:600;color:{{ t.ink }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.name }}</span>
+                    <sc-if value="{{ p.disabled }}" hint-placeholder-val="{{ false }}">
+                      <span style="flex:none;border-radius:5px;border:1px solid {{ t.dangerBorder }};background:{{ t.dangerBg }};color:{{ t.danger }};padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase">disabled</span>
+                    </sc-if>
+                  </div>
+                  <span style="display:block;margin-top:3px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:{{ t.muted }}">{{ p.slug }}</span>
+                </div>
+              </div>
+
+              <div style="margin-top:16px;display:flex;align-items:center;gap:6px">
+                <sc-for list="{{ p.serviceIcons }}" as="ic" hint-placeholder-count="2">
+                  <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:6px;background:{{ t.chip }};border:1px solid {{ t.chipBorder }};color:{{ t.sec }}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ ic }}"></path></svg></span>
+                </sc-for>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:{{ t.faint }}">{{ p.serviceCountLabel }}</span>
+              </div>
+
+              <div style="margin-top:14px;padding-top:12px;border-top:1px solid {{ t.subtle }};display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:{{ t.muted }}">
+                <span style="display:inline-flex;align-items:center;gap:4px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ p.visIconD }}"></path></svg>{{ p.visLabel }}</span>
+                <span>·</span>
+                <span>{{ p.region }}</span>
+                <span>·</span>
+                <span>{{ p.createdAt }}</span>
+              </div>
+            </a>
+
+            <button onClick="{{ p.toggleMenu }}" aria-label="Project actions" style="position:absolute;right:14px;top:14px;display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border:none;border-radius:7px;cursor:pointer;background:{{ p.menuBtnBg }};color:{{ t.muted }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2M19 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2M5 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2"></path></svg></button>
+
+            <sc-if value="{{ p.menuOpen }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;right:14px;top:44px;z-index:20;width:150px;overflow:hidden;border-radius:9px;border:1px solid {{ t.border }};background:{{ t.raised }};padding:4px;box-shadow:0 8px 24px {{ t.panelShadow }}">
+                <button onClick="{{ goSettings }}" style="display:flex;align-items:center;gap:8px;width:100%;box-sizing:border-box;border:none;background:none;border-radius:6px;padding:8px 9px;text-align:left;font-size:13px;color:{{ t.ink }};cursor:pointer" style-hover="background:{{ t.chip }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0"></path></svg>Settings</button>
+                <button onClick="{{ openDeleteModal }}" style="display:block;width:100%;box-sizing:border-box;border:none;background:none;border-radius:6px;padding:8px 9px;text-align:left;font-size:13px;color:{{ t.danger }};cursor:pointer" style-hover="background:{{ t.dangerBg }}">Delete</button>
+              </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+  </main>
+  </sc-if>
+
+  <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+  <main style="max-width:600px;margin:0 auto;padding:40px 24px 80px">
+    <div style="margin-bottom:24px;display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:12.5px">
+      <button onClick="{{ goProjects }}" style="border:none;background:none;padding:0;cursor:pointer;color:{{ t.muted }}" style-hover="color:{{ t.ink }}">mitto</button>
+      <span style="color:{{ t.faint }}">/</span>
+      <button onClick="{{ goProjects }}" style="border:none;background:none;padding:0;cursor:pointer;color:{{ t.muted }}" style-hover="color:{{ t.ink }}">{{ selected.slug }}</button>
+      <span style="color:{{ t.faint }}">/</span>
+      <span style="color:{{ t.ink }}">Settings</span>
+    </div>
+
+    <div style="margin-bottom:32px;display:flex;align-items:center;gap:16px">
+      <div style="flex:none;width:56px;height:56px;border-radius:14px;background:{{ selected.avatarBg }};display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;color:#fff">{{ selected.initial }}</div>
+      <div>
+        <h1 style="margin:0;font-size:22px;font-weight:600;letter-spacing:-0.015em;color:{{ t.ink }}">{{ selected.name }}</h1>
+        <p style="margin:4px 0 0;font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:{{ t.muted }}">{{ selected.region }} · created {{ selected.createdAt }}</p>
+      </div>
+    </div>
+
+    <form>
+      <div style="border-radius:12px;border:1px solid {{ t.line }};background:{{ t.surface }};padding:22px;margin-bottom:16px">
+        <h3 style="margin:0 0 16px;font-size:14px;font-weight:600;color:{{ t.ink }}">General</h3>
+        <label style="display:block;margin-bottom:6px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:{{ t.muted }}" for="proj-name">Name</label>
+        <input id="proj-name" value="{{ nameValue }}" onChange="{{ onNameChange }}" style="width:100%;box-sizing:border-box;margin-bottom:8px;border-radius:8px;border:1px solid {{ t.border }};background:{{ t.canvas }};padding:9px 12px;font-size:14px;color:{{ t.ink }};outline:none;transition:border-color .15s ease" style-focus="border-color:{{ t.accent }}" />
+        <p style="margin:0;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:{{ t.faint }}">slug → {{ slugPreview }}</p>
+      </div>
+
+      <div style="border-radius:12px;border:1px solid {{ t.line }};background:{{ t.surface }};padding:22px;margin-bottom:16px">
+        <h3 style="margin:0 0 4px;font-size:14px;font-weight:600;color:{{ t.ink }}">Domain</h3>
+        <p style="margin:0 0 16px;font-size:12.5px;color:{{ t.sec }}">Where this project is reachable.</p>
+        <div style="display:flex;align-items:center;justify-content:space-between;border:1px solid {{ t.line }};border-radius:8px;padding:10px 14px;margin-bottom:10px;background:{{ t.raised }}">
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:{{ t.ink2 }}">{{ slugPreview }}.mitto.app</span>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:{{ t.muted }}">default</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;border:1px dashed {{ t.dashed }};border-radius:8px;padding:10px 14px">
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:{{ t.faint }}">Add a custom domain</span>
+          <span style="border-radius:5px;background:{{ t.chip }};border:1px solid {{ t.chipBorder }};color:{{ t.muted }};padding:2px 7px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase">coming soon</span>
+        </div>
+      </div>
+
+      <div style="border-radius:12px;border:1px solid {{ t.line }};background:{{ t.surface }};padding:22px;margin-bottom:16px">
+        <h3 style="margin:0 0 16px;font-size:14px;font-weight:600;color:{{ t.ink }}">Visibility</h3>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+          <div>
+            <p style="margin:0;font-size:13.5px;color:{{ t.ink }}">Private</p>
+            <p style="margin:2px 0 0;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:{{ t.faint }}">reserved for future team features</p>
+          </div>
+          <button type="button" onClick="{{ togglePrivate }}" aria-label="Toggle private" style="flex:none;width:36px;height:20px;border-radius:10px;border:none;cursor:pointer;padding:2px;box-sizing:border-box;background:{{ privateTrackBg }};transition:background .15s ease"><span style="display:block;width:16px;height:16px;border-radius:50%;background:#fff;transform:{{ privateThumbX }};transition:transform .15s ease"></span></button>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <p style="margin:0;font-size:13.5px;color:{{ t.ink }}">Enabled</p>
+            <p style="margin:2px 0 0;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:{{ t.faint }}">new deployments are blocked while disabled</p>
+          </div>
+          <button type="button" onClick="{{ toggleEnabled }}" aria-label="Toggle enabled" style="flex:none;width:36px;height:20px;border-radius:10px;border:none;cursor:pointer;padding:2px;box-sizing:border-box;background:{{ enabledTrackBg }};transition:background .15s ease"><span style="display:block;width:16px;height:16px;border-radius:50%;background:#fff;transform:{{ enabledThumbX }};transition:transform .15s ease"></span></button>
+        </div>
+      </div>
+
+      <button type="submit" style="border-radius:8px;background:{{ t.accent }};border:none;padding:10px 20px;font-size:13.5px;font-weight:600;color:{{ t.accentInk }};cursor:pointer;transition:background .15s ease" style-hover="background:{{ t.accentHover }}">Save changes</button>
+    </form>
+
+    <div style="margin-top:36px;border-radius:12px;border:1px solid {{ t.dangerBorder }};padding:22px">
+      <h3 style="margin:0 0 6px;font-size:14px;font-weight:600;color:{{ t.ink }}">Danger zone</h3>
+      <p style="margin:0 0 16px;font-size:12.5px;color:{{ t.sec }}">Deleting a project also deletes all of its services and deployment history.</p>
+      <button onClick="{{ openDeleteModal }}" style="display:inline-flex;align-items:center;gap:6px;border-radius:8px;border:1px solid {{ t.dangerBorder }};background:none;padding:9px 16px;font-size:12.5px;font-weight:500;color:{{ t.danger }};cursor:pointer;transition:background .15s ease" style-hover="background:{{ t.dangerBg }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 11v6M14 11v6M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>Delete project</button>
+    </div>
+  </main>
+  </sc-if>
+
+  <sc-if value="{{ showCreateModal }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;background:{{ t.overlay }};backdrop-filter:blur(4px)">
+      <form style="width:400px;box-sizing:border-box;border-radius:14px;border:1px solid {{ t.border }};background:{{ t.surface }};padding:24px;box-shadow:0 24px 64px {{ t.panelShadow }}">
+        <h2 style="margin:0 0 18px;font-size:15px;font-weight:600;color:{{ t.ink }}">New project</h2>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
+          <div style="flex:none;width:40px;height:40px;border-radius:10px;background:{{ newProjectAvatarBg }};display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;color:#fff">{{ newProjectInitial }}</div>
+          <div style="min-width:0;flex:1">
+            <input id="new-project-name" autoFocus="{{ true }}" placeholder="my-app" value="{{ newProjectName }}" onChange="{{ onNewNameChange }}" style="width:100%;box-sizing:border-box;border-radius:8px;border:1px solid {{ t.border }};background:{{ t.canvas }};padding:9px 12px;font-size:14px;color:{{ t.ink }};outline:none;transition:border-color .15s ease" style-focus="border-color:{{ t.accent }}" />
+          </div>
+        </div>
+        <p style="margin:0 0 20px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:{{ t.faint }}">will be created at → {{ newProjectSlug }}.mitto.app</p>
+        <div style="display:flex;justify-content:flex-end;gap:10px">
+          <button type="button" onClick="{{ closeModals }}" style="border-radius:8px;background:none;border:none;padding:9px 14px;font-size:13px;font-weight:500;color:{{ t.sec }};cursor:pointer" style-hover="color:{{ t.ink }}">Cancel</button>
+          <button type="submit" onClick="{{ closeModals }}" style="border-radius:8px;background:{{ t.accent }};border:none;padding:9px 18px;font-size:13px;font-weight:600;color:{{ t.accentInk }};cursor:pointer;transition:background .15s ease" style-hover="background:{{ t.accentHover }}">Create</button>
+        </div>
+      </form>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showDeleteModal }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:{{ t.overlay }};backdrop-filter:blur(4px)">
+      <div style="width:380px;box-sizing:border-box;border-radius:14px;border:1px solid {{ t.border }};background:{{ t.surface }};padding:24px;box-shadow:0 24px 64px {{ t.panelShadow }}">
+        <h2 style="margin:0 0 8px;font-size:15px;font-weight:600;color:{{ t.ink }}">Delete project</h2>
+        <p style="margin:0 0 20px;font-size:13.5px;color:{{ t.sec }}">Delete <strong>{{ selected.name }}</strong> and all its services? This can't be undone.</p>
+        <div style="display:flex;justify-content:flex-end;gap:10px">
+          <button onClick="{{ closeModals }}" style="border-radius:8px;background:none;border:none;padding:9px 14px;font-size:13px;font-weight:500;color:{{ t.sec }};cursor:pointer" style-hover="color:{{ t.ink }}">Keep project</button>
+          <button onClick="{{ closeModals }}" style="border-radius:8px;background:{{ t.danger }};border:none;padding:9px 18px;font-size:13px;font-weight:600;color:#fff;cursor:pointer">Delete</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1400,&quot;height&quot;:1000},&quot;loadingState&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;States&quot;},&quot;emptyState&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;States&quot;}}">
+const BONE = {
+  canvas:'#F4F2ED', headerBg:'rgba(251,250,247,0.92)', surface:'#FBFAF7', raised:'#F1EFE9', panel:'#FDFCFA',
+  chip:'#ECE9E2', chipBorder:'#D3CEC2', border:'#D8D3C8', subtle:'#E7E3DA', line:'#E2DED4', dashed:'#CFCABE',
+  ink:'#1E2126', ink2:'#3A3F47', sec:'#5C6470', muted:'#8B9099', faint:'#A7A399',
+  accent:'#0FA893', accentHover:'#12BCA4', accentInk:'#FFFFFF',
+  danger:'#DE3B30', dangerBorder:'rgba(222,59,48,0.35)', dangerBg:'rgba(222,59,48,0.06)',
+  overlay:'rgba(45,41,33,0.35)', panelShadow:'rgba(46,42,32,0.12)',
+  shadowCard:'0 8px 24px rgba(46,42,32,0.10)',
+};
+const GRAPHITE = {
+  canvas:'#262624', headerBg:'rgba(38,38,36,0.92)', surface:'#30302E', raised:'#383735', panel:'#2B2A28',
+  chip:'#3A3937', chipBorder:'#4A4845', border:'#45433F', subtle:'#3A3835', line:'#403E3A', dashed:'#514E48',
+  ink:'#ECEAE4', ink2:'#D6D3CC', sec:'#A8A49C', muted:'#87847C', faint:'#5C594F',
+  accent:'#3DD6C4', accentHover:'#5EE8D8', accentInk:'#0A2622',
+  danger:'#FF6459', dangerBorder:'rgba(255,100,89,0.35)', dangerBg:'rgba(255,100,89,0.08)',
+  overlay:'rgba(15,14,12,0.6)', panelShadow:'rgba(0,0,0,0.35)',
+  shadowCard:'0 8px 24px rgba(0,0,0,0.3)',
+};
+const TYPE_ICONS = {
+  web: 'M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20M2 12h20',
+  worker: 'M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0',
+  cron: 'M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0M12 6v6l4 2',
+  static: 'M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2zM14 2v5a1 1 0 0 0 1 1h5M10 9H8M16 13H8M16 17H8',
+};
+const GLOBE_D = TYPE_ICONS.web;
+const LOCK_D = 'M19 11H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2M7 11V7a5 5 0 0 1 10 0v4';
+const HUES = [165, 210, 265, 320, 30, 60];
+
+function hash(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
+  return h;
+}
+function identityBg(name) {
+  const hue = HUES[hash(name) % HUES.length];
+  return `oklch(0.58 0.12 ${hue})`;
+}
+function slugify(name) {
+  return name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'project';
+}
+
+class Component extends DCLogic {
+  state = {
+    themeMode: 'bone', screen: 'projects', addMenuOpen: false, openCardMenu: null,
+    showCreateModal: false, showDeleteModal: false, newProjectName: '',
+    name: 'acme-api', isPrivate: true, enabled: true,
+  };
+  projects = [
+    { id: 'acme-api', name: 'acme-api', slug: 'acme-api', region: 'us-east', isPrivate: true, enabled: true, createdAt: '2d ago', services: ['web', 'worker', 'cron'] },
+    { id: 'marketing-site', name: 'marketing site', slug: 'marketing-site', region: 'eu-west', isPrivate: false, enabled: true, createdAt: '6d ago', services: ['static'] },
+    { id: 'internal-tools', name: 'internal tools', slug: 'internal-tools', region: 'us-east', isPrivate: true, enabled: false, createdAt: '3w ago', services: ['web', 'worker'] },
+  ];
+  renderVals() {
+    const themeMode = this.state.themeMode;
+    const t = themeMode === 'graphite' ? GRAPHITE : BONE;
+    const loading = this.props.loadingState ?? false;
+    const empty = this.props.emptyState ?? false;
+    const showGrid = !loading && !empty;
+
+    const projects = this.projects.map((p) => ({
+      ...p,
+      initial: p.name.trim()[0].toUpperCase(),
+      avatarBg: identityBg(p.name),
+      disabled: !p.enabled,
+      hoverBorder: themeMode === 'graphite' ? 'rgba(61,214,196,0.4)' : 'rgba(15,168,147,0.4)',
+      serviceIcons: p.services.slice(0, 3).map((s) => TYPE_ICONS[s]),
+      serviceCountLabel: p.services.length > 3 ? `+${p.services.length - 3} more` : `${p.services.length} ${p.services.length === 1 ? 'service' : 'services'}`,
+      visIconD: p.isPrivate ? LOCK_D : GLOBE_D,
+      visLabel: p.isPrivate ? 'Private' : 'Public',
+      menuOpen: this.state.openCardMenu === p.id,
+      menuBtnBg: this.state.openCardMenu === p.id ? t.chip : 'transparent',
+      toggleMenu: () => this.setState((st) => ({ openCardMenu: st.openCardMenu === p.id ? null : p.id })),
+    }));
+
+    const selectedSource = this.projects[0];
+    const selected = {
+      ...selectedSource, name: this.state.name,
+      initial: this.state.name.trim()[0]?.toUpperCase() || '?',
+      avatarBg: identityBg(this.state.name || selectedSource.name),
+      slug: slugify(this.state.name),
+    };
+
+    const newName = this.state.newProjectName;
+
+    return {
+      t,
+      themeIconD: themeMode === 'graphite'
+        ? 'M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z'
+        : 'M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0',
+      toggleTheme: () => this.setState((st) => ({ themeMode: st.themeMode === 'graphite' ? 'bone' : 'graphite' })),
+      isProjects: this.state.screen === 'projects',
+      isSettings: this.state.screen === 'settings',
+      goProjects: () => this.setState({ screen: 'projects', openCardMenu: null }),
+      goSettings: () => this.setState({ screen: 'settings', openCardMenu: null }),
+      tabProjectsBg: this.state.screen === 'projects' ? t.surface : 'transparent',
+      tabProjectsColor: this.state.screen === 'projects' ? t.ink : t.muted,
+      tabSettingsBg: this.state.screen === 'settings' ? t.surface : 'transparent',
+      tabSettingsColor: this.state.screen === 'settings' ? t.ink : t.muted,
+      countLabel: loading ? '' : String(projects.length).padStart(2, '0'),
+      loading, empty, showGrid,
+      skeletons: [1, 2, 3],
+      projects,
+      addMenuOpen: this.state.addMenuOpen,
+      toggleAddMenu: () => this.setState((st) => ({ addMenuOpen: !st.addMenuOpen })),
+      openCreateModal: () => this.setState({ showCreateModal: true, addMenuOpen: false }),
+      openDeleteModal: () => this.setState({ showDeleteModal: true, openCardMenu: null }),
+      closeModals: () => this.setState({ showCreateModal: false, showDeleteModal: false }),
+      showCreateModal: this.state.showCreateModal,
+      showDeleteModal: this.state.showDeleteModal,
+      newProjectName: newName,
+      newProjectInitial: newName.trim()[0]?.toUpperCase() || '+',
+      newProjectAvatarBg: newName.trim() ? identityBg(newName) : t.chip,
+      newProjectSlug: newName.trim() ? slugify(newName) : 'my-app',
+      onNewNameChange: (e) => this.setState({ newProjectName: e.target.value }),
+      selected,
+      nameValue: this.state.name,
+      onNameChange: (e) => this.setState({ name: e.target.value }),
+      slugPreview: slugify(this.state.name),
+      togglePrivate: () => this.setState((st) => ({ isPrivate: !st.isPrivate })),
+      toggleEnabled: () => this.setState((st) => ({ enabled: !st.enabled })),
+      privateTrackBg: this.state.isPrivate ? t.accent : t.border,
+      privateThumbX: this.state.isPrivate ? 'translateX(16px)' : 'translateX(0)',
+      enabledTrackBg: this.state.enabled ? t.accent : t.border,
+      enabledThumbX: this.state.enabled ? 'translateX(16px)' : 'translateX(0)',
+    };
+  }
+}
+</script>
+</body>
+</html>
