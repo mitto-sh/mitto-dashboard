@@ -58,3 +58,13 @@ export function validateProjectForm(name: string): ProjectFormResult {
   if (trimmed.length > 64) return { valid: false, error: 'Name must be 64 characters or fewer' }
   return { valid: true, data: { name: trimmed } }
 }
+
+export function slugify(name: string): string {
+  return (
+    name
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '') || 'project'
+  )
+}

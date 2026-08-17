@@ -3,8 +3,9 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useThemeContext } from './ThemeProvider'
-import { MoreHorizontalIcon, LockIcon, GlobeIcon, SettingsIcon } from './icons'
+import { MoreHorizontalIcon, LockIcon, GlobeIcon, SettingsIcon, ServiceTypeIcon } from './icons'
 import { formatRelativeTime } from '@/lib/time'
+import { identityColor, initialFor } from '@/lib/identity'
 import type { Project } from '@/lib/types'
 
 interface ProjectCardProps {
@@ -16,16 +17,30 @@ export function ProjectCard({ project, onRequestDelete }: ProjectCardProps) {
   const { theme } = useThemeContext()
   const [menuOpen, setMenuOpen] = useState(false)
 
-  const serviceCount = project.services?.length ?? 0
+  const services = project.services ?? []
+  const serviceCount = services.length
+  const visibleIcons = services.slice(0, 3)
+  const serviceCountLabel =
+    serviceCount > 3
+      ? `+${serviceCount - 3} more`
+      : `${serviceCount} ${serviceCount === 1 ? 'service' : 'services'}`
 
   return (
     <div
-      className="group relative rounded-xl border p-5 transition-colors"
-      style={{ borderColor: theme.line, backgroundColor: theme.surface }}
+      className="group relative rounded-xl border p-5 transition-all duration-150 hover:-translate-y-[2px]"
+      style={{ borderColor: theme.line, backgroundColor: theme.surface, boxShadow: 'none' }}
+      onMouseEnter={(e) => { e.currentTarget.style.boxShadow = theme.shadowCard }}
+      onMouseLeave={(e) => { e.currentTarget.style.boxShadow = 'none' }}
     >
       <Link href={`/projects/${project.id}`} className="block">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex min-w-0 flex-col gap-1">
+        <div className="flex items-start gap-3">
+          <div
+            className="flex h-9 w-9 flex-none items-center justify-center rounded-[9px] font-mono text-sm font-semibold text-white"
+            style={{ backgroundColor: identityColor(project.name) }}
+          >
+            {initialFor(project.name)}
+          </div>
+          <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <span className="truncate text-sm font-medium" style={{ color: theme.ink }}>{project.name}</span>
               {!project.enabled && (
@@ -41,13 +56,29 @@ export function ProjectCard({ project, onRequestDelete }: ProjectCardProps) {
           </div>
         </div>
 
-        <div className="mt-4 flex items-center gap-3 font-mono text-[11px]" style={{ color: theme.muted }}>
+        <div className="mt-4 flex items-center gap-[6px]">
+          {visibleIcons.map((service) => (
+            <span
+              key={service.id}
+              className="inline-flex h-[22px] w-[22px] items-center justify-center rounded-[6px] border"
+              style={{ backgroundColor: theme.chip, borderColor: theme.chipBorder, color: theme.sec }}
+            >
+              <ServiceTypeIcon type={service.type} size={11} />
+            </span>
+          ))}
+          <span className="font-mono text-[11px]" style={{ color: theme.faint }}>{serviceCountLabel}</span>
+        </div>
+
+        <div
+          className="mt-[14px] flex items-center gap-2 border-t pt-3 font-mono text-[11px]"
+          style={{ borderColor: theme.subtle, color: theme.muted }}
+        >
           <span className="inline-flex items-center gap-1">
             {project.isPrivate ? <LockIcon size={11} /> : <GlobeIcon size={11} />}
             {project.isPrivate ? 'Private' : 'Public'}
           </span>
           <span>·</span>
-          <span>{serviceCount} {serviceCount === 1 ? 'service' : 'services'}</span>
+          <span>{project.region}</span>
           <span>·</span>
           <span>{formatRelativeTime(project.createdAt)}</span>
         </div>

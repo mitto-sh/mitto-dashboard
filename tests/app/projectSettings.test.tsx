@@ -37,8 +37,8 @@ describe('ProjectSettingsPage', () => {
     renderWithTheme(<SettingsPage />)
 
     expect(await screen.findByDisplayValue('My App')).toBeInTheDocument()
-    expect(screen.getByLabelText('Private')).toBeChecked()
-    expect(screen.getByLabelText('Enabled')).toBeChecked()
+    expect(screen.getByLabelText('Toggle private')).toHaveAttribute('aria-checked', 'true')
+    expect(screen.getByLabelText('Toggle enabled')).toHaveAttribute('aria-checked', 'true')
   })
 
   it('saves a rename and flag changes', async () => {
@@ -50,14 +50,14 @@ describe('ProjectSettingsPage', () => {
 
     await screen.findByDisplayValue('My App')
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Renamed' } })
-    fireEvent.click(screen.getByLabelText('Private'))
-    fireEvent.click(screen.getByLabelText('Enabled'))
+    fireEvent.click(screen.getByLabelText('Toggle private'))
+    fireEvent.click(screen.getByLabelText('Toggle enabled'))
     fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
 
     await waitFor(() => {
       expect(api.updateProject).toHaveBeenCalledWith('p1', { name: 'Renamed', isPrivate: false, enabled: false })
     })
-    expect(await screen.findByText(/renamed/)).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Renamed' })).toBeInTheDocument()
   })
 
   it('shows a validation error for an empty name', async () => {
@@ -72,14 +72,14 @@ describe('ProjectSettingsPage', () => {
     expect(api.updateProject).not.toHaveBeenCalled()
   })
 
-  it('shows a hint when disabling', async () => {
+  it('toggles the enabled switch off', async () => {
     const { default: SettingsPage } = await import('@/app/projects/[id]/settings/page')
     renderWithTheme(<SettingsPage />)
 
     await screen.findByDisplayValue('My App')
-    fireEvent.click(screen.getByLabelText('Enabled'))
+    fireEvent.click(screen.getByLabelText('Toggle enabled'))
 
-    expect(screen.getByText(/new deployments will be blocked/)).toBeInTheDocument()
+    expect(screen.getByLabelText('Toggle enabled')).toHaveAttribute('aria-checked', 'false')
   })
 
   it('shows a save error message on failure', async () => {

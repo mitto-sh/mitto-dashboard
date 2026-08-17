@@ -2,17 +2,35 @@ import { describe, it, expect, vi } from 'vitest'
 import { screen, fireEvent } from '@testing-library/react'
 import { ProjectCard } from '@/components/ProjectCard'
 import { renderWithTheme } from '../helpers/renderWithTheme'
-import type { Project } from '@/lib/types'
+import type { Project, Service } from '@/lib/types'
+
+const services: Service[] = [
+  {
+    id: 'svc-1', projectId: 'p1', name: 'web', type: 'web', port: 3000, cpu: 256, memory: 512,
+    repoUrl: null, repoProvider: null, defaultBranch: 'main', buildCommand: null, startCommand: null, outputDir: null, runtime: null,
+  },
+]
 
 const project: Project = {
   id: 'p1', name: 'Acme', slug: 'acme', region: 'us-east-1',
-  isPrivate: true, enabled: true, createdAt: new Date().toISOString(),
+  isPrivate: true, enabled: true, createdAt: new Date().toISOString(), services,
 }
 
 describe('ProjectCard', () => {
   it('links to the project canvas', () => {
     renderWithTheme(<ProjectCard project={project} onRequestDelete={vi.fn()} />)
     expect(screen.getAllByRole('link')[0]).toHaveAttribute('href', '/projects/p1')
+  })
+
+  it('shows the identity avatar with the first letter of the name', () => {
+    renderWithTheme(<ProjectCard project={project} onRequestDelete={vi.fn()} />)
+    expect(screen.getByText('A')).toBeInTheDocument()
+  })
+
+  it('shows region and service count in the footer', () => {
+    renderWithTheme(<ProjectCard project={project} onRequestDelete={vi.fn()} />)
+    expect(screen.getByText('us-east-1')).toBeInTheDocument()
+    expect(screen.getByText('1 service')).toBeInTheDocument()
   })
 
   it('omits the disabled badge when enabled', () => {
