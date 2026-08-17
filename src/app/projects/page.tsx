@@ -148,7 +148,17 @@ function ProjectsList() {
                   style={{ borderColor: theme.line, backgroundColor: theme.surface }}
                 >
                   <div className="flex flex-col gap-[5px]">
-                    <span className="text-sm font-medium" style={{ color: theme.ink }}>{p.name}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium" style={{ color: theme.ink }}>{p.name}</span>
+                      {!p.enabled && (
+                        <span
+                          className="rounded-[5px] border px-[6px] py-[1px] font-mono text-[9px] font-medium uppercase tracking-[0.08em]"
+                          style={{ color: theme.danger, borderColor: theme.dangerBorder, backgroundColor: theme.dangerBg }}
+                        >
+                          disabled
+                        </span>
+                      )}
+                    </div>
                     <span className="font-mono text-xs" style={{ color: theme.muted }}>{p.slug}</span>
                   </div>
                   <ArrowRightIcon size={15} style={{ color: theme.faint }} />

@@ -26,7 +26,7 @@ const repo: GithubRepo = {
   id: 1, name: 'api', full_name: 'acme/api', private: false, default_branch: 'main', html_url: 'https://github.com/acme/api',
 }
 
-const existingProject: Project = { id: 'p1', name: 'Acme', slug: 'acme', region: 'us-east-1' }
+const existingProject: Project = { id: 'p1', name: 'Acme', slug: 'acme', region: 'us-east-1', isPrivate: true, enabled: true }
 
 const createdService: Service = {
   id: 's1', projectId: 'p1', name: 'web', type: 'web', port: 3000, cpu: 256, memory: 512,

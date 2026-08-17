@@ -21,7 +21,8 @@ vi.mock('@/lib/api', () => ({
 
 import { api } from '@/lib/api'
 
-const project: Project = { id: 'p1', name: 'My App', slug: 'my-app', repoUrl: null, runtime: null, region: 'us-east-1' }
+const project: Project = { id: 'p1', name: 'My App', slug: 'my-app', region: 'us-east-1', isPrivate: true, enabled: true }
+const disabledProject: Project = { ...project, id: 'p2', name: 'Paused App', slug: 'paused-app', enabled: false }
 
 describe('ProjectsPage', () => {
   beforeEach(() => {
@@ -96,5 +97,14 @@ describe('ProjectsPage', () => {
     renderWithTheme(<ProjectsPage />)
 
     expect(await screen.findByText(/expired or was invalid/)).toBeInTheDocument()
+  })
+
+  it('shows a disabled badge for disabled projects in the list', async () => {
+    vi.mocked(api.listProjects).mockResolvedValue([project, disabledProject])
+    const { default: ProjectsPage } = await import('@/app/projects/page')
+    renderWithTheme(<ProjectsPage />)
+
+    await screen.findByText('Paused App')
+    expect(screen.getByText('disabled')).toBeInTheDocument()
   })
 })

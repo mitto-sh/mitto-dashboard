@@ -11,6 +11,8 @@ export interface Project {
   name: string
   slug: string
   region: string
+  isPrivate: boolean
+  enabled: boolean
   services?: Service[]
 }
 

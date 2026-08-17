@@ -51,6 +51,8 @@ export const api = {
   createProject: (data: { name: string }) =>
     request<Project>('/projects', { method: 'POST', body: JSON.stringify(data) }),
   getProject: (id: string) => request<Project>(`/projects/${id}`),
+  updateProject: (id: string, data: { name?: string; isPrivate?: boolean; enabled?: boolean }) =>
+    request<Project>(`/projects/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   deleteProject: (id: string) => request<void>(`/projects/${id}`, { method: 'DELETE' }),
 
   createService: (data: {
