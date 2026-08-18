@@ -6,7 +6,7 @@ import type { Project, Service } from '@/lib/types'
 
 const services: Service[] = [
   {
-    id: 'svc-1', projectId: 'p1', name: 'web', type: 'web', port: 3000, cpu: 256, memory: 512,
+    id: 'svc-1', projectId: 'p1', name: 'web', type: 'web', port: 3000, cpu: 256, memory: 512, enabled: true,
     repoUrl: null, repoProvider: null, defaultBranch: 'main', buildCommand: null, startCommand: null, outputDir: null, runtime: null,
   },
 ]

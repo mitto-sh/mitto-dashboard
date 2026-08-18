@@ -5,7 +5,7 @@ import { ServiceDetailPanel } from '@/components/ServiceDetailPanel'
 import type { Service, Deployment, EnvVar } from '@/lib/types'
 
 const service: Service = {
-  id: 'svc-1', projectId: 'p1', name: 'web', type: 'web', port: 3000, cpu: 256, memory: 512,
+  id: 'svc-1', projectId: 'p1', name: 'web', type: 'web', port: 3000, cpu: 256, memory: 512, enabled: true,
   repoUrl: null, repoProvider: null, defaultBranch: 'main',
   buildCommand: null, startCommand: null, outputDir: null, runtime: null,
 }
@@ -33,10 +33,29 @@ vi.mock('@/lib/api', () => ({
     upsertEnvVars: vi.fn(),
     deleteEnvVar: vi.fn(),
     deleteService: vi.fn(),
+    updateService: vi.fn(),
   },
 }))
 
 import { api } from '@/lib/api'
+
+function renderPanel(overrides: Partial<Parameters<typeof ServiceDetailPanel>[0]> = {}) {
+  const onClose = vi.fn()
+  const onServiceDeleted = vi.fn()
+  const onServiceUpdated = vi.fn()
+  const onDeploymentTriggered = vi.fn()
+  renderWithTheme(
+    <ServiceDetailPanel
+      service={service}
+      onClose={onClose}
+      onServiceDeleted={onServiceDeleted}
+      onServiceUpdated={onServiceUpdated}
+      onDeploymentTriggered={onDeploymentTriggered}
+      {...overrides}
+    />,
+  )
+  return { onClose, onServiceDeleted, onServiceUpdated, onDeploymentTriggered }
+}
 
 describe('ServiceDetailPanel', () => {
   beforeEach(() => {
@@ -45,70 +64,34 @@ describe('ServiceDetailPanel', () => {
   })
 
   it('shows "no deployments yet" when there is no deployment history', async () => {
-    renderWithTheme(
-      <ServiceDetailPanel
-        service={service}
-        onClose={vi.fn()}
-        onServiceDeleted={vi.fn()}
-        onDeploymentTriggered={vi.fn()}
-      />,
-    )
+    renderPanel()
     expect(await screen.findByText('no deployments yet')).toBeInTheDocument()
   })
 
   it('shows the linked repo and branch when the service has one', async () => {
-    renderWithTheme(
-      <ServiceDetailPanel
-        service={serviceWithRepo}
-        onClose={vi.fn()}
-        onServiceDeleted={vi.fn()}
-        onDeploymentTriggered={vi.fn()}
-      />,
-    )
+    renderPanel({ service: serviceWithRepo })
     const link = await screen.findByText(/github.com\/acme\/web @ develop/)
     expect(link).toHaveAttribute('href', 'https://github.com/acme/web')
   })
 
   it('omits the repo line when the service has no repo', async () => {
-    renderWithTheme(
-      <ServiceDetailPanel
-        service={service}
-        onClose={vi.fn()}
-        onServiceDeleted={vi.fn()}
-        onDeploymentTriggered={vi.fn()}
-      />,
-    )
+    renderPanel()
     await screen.findByText('no deployments yet')
     expect(screen.queryByText(/github.com/)).not.toBeInTheDocument()
   })
 
   it('shows the latest deployment status and a cancel button when cancellable', async () => {
     vi.mocked(api.listDeployments).mockResolvedValue([queuedDeployment])
-    renderWithTheme(
-      <ServiceDetailPanel
-        service={service}
-        onClose={vi.fn()}
-        onServiceDeleted={vi.fn()}
-        onDeploymentTriggered={vi.fn()}
-      />,
-    )
+    renderPanel()
     expect(await screen.findByText('queued')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument()
   })
 
   it('triggers a deployment and reports it to the parent', async () => {
-    const onDeploymentTriggered = vi.fn()
     const newDeployment = { ...queuedDeployment, id: 'd2' }
     vi.mocked(api.triggerDeployment).mockResolvedValue(newDeployment)
 
-    renderWithTheme(
-      <ServiceDetailPanel
-        service={service}
-        onClose={vi.fn()}
-        onServiceDeleted={vi.fn()}
-        onDeploymentTriggered={onDeploymentTriggered}
-      />,
-    )
+    const { onDeploymentTriggered } = renderPanel()
     await screen.findByText('no deployments yet')
     fireEvent.click(screen.getByRole('button', { name: 'Deploy' }))
 
@@ -117,14 +100,7 @@ describe('ServiceDetailPanel', () => {
 
   it('shows an error message when triggering a deployment fails', async () => {
     vi.mocked(api.triggerDeployment).mockRejectedValue(new Error('boom'))
-    renderWithTheme(
-      <ServiceDetailPanel
-        service={service}
-        onClose={vi.fn()}
-        onServiceDeleted={vi.fn()}
-        onDeploymentTriggered={vi.fn()}
-      />,
-    )
+    renderPanel()
     await screen.findByText('no deployments yet')
     fireEvent.click(screen.getByRole('button', { name: 'Deploy' }))
 
@@ -132,14 +108,7 @@ describe('ServiceDetailPanel', () => {
   })
 
   it('lists env vars and deletes one', async () => {
-    renderWithTheme(
-      <ServiceDetailPanel
-        service={service}
-        onClose={vi.fn()}
-        onServiceDeleted={vi.fn()}
-        onDeploymentTriggered={vi.fn()}
-      />,
-    )
+    renderPanel()
     expect(await screen.findByText('NODE_ENV')).toBeInTheDocument()
 
     fireEvent.click(screen.getByLabelText('Remove variable'))
@@ -148,14 +117,7 @@ describe('ServiceDetailPanel', () => {
 
   it('adds a new env var', async () => {
     vi.mocked(api.upsertEnvVars).mockResolvedValue([{ ...envVar, key: 'PORT', value: '***' }])
-    renderWithTheme(
-      <ServiceDetailPanel
-        service={service}
-        onClose={vi.fn()}
-        onServiceDeleted={vi.fn()}
-        onDeploymentTriggered={vi.fn()}
-      />,
-    )
+    renderPanel()
     await screen.findByText('NODE_ENV')
 
     fireEvent.change(screen.getByLabelText('Env var key'), { target: { value: 'port' } })
@@ -168,15 +130,7 @@ describe('ServiceDetailPanel', () => {
   })
 
   it('deletes the service and reports it to the parent', async () => {
-    const onServiceDeleted = vi.fn()
-    renderWithTheme(
-      <ServiceDetailPanel
-        service={service}
-        onClose={vi.fn()}
-        onServiceDeleted={onServiceDeleted}
-        onDeploymentTriggered={vi.fn()}
-      />,
-    )
+    const { onServiceDeleted } = renderPanel()
     await screen.findByText('no deployments yet')
     fireEvent.click(screen.getByText('Delete service'))
 
@@ -184,17 +138,31 @@ describe('ServiceDetailPanel', () => {
   })
 
   it('calls onClose when the close button is clicked', async () => {
-    const onClose = vi.fn()
-    renderWithTheme(
-      <ServiceDetailPanel
-        service={service}
-        onClose={onClose}
-        onServiceDeleted={vi.fn()}
-        onDeploymentTriggered={vi.fn()}
-      />,
-    )
+    const { onClose } = renderPanel()
     await screen.findByText('no deployments yet')
     fireEvent.click(screen.getByLabelText('Close panel'))
     expect(onClose).toHaveBeenCalled()
+  })
+
+  it('disables a service and reports the update to the parent', async () => {
+    const updated = { ...service, enabled: false }
+    vi.mocked(api.updateService).mockResolvedValue(updated)
+
+    const { onServiceUpdated } = renderPanel()
+    await screen.findByText('no deployments yet')
+    fireEvent.click(screen.getByLabelText('Toggle service enabled'))
+
+    await waitFor(() => {
+      expect(api.updateService).toHaveBeenCalledWith('svc-1', { enabled: false })
+      expect(onServiceUpdated).toHaveBeenCalledWith(updated)
+    })
+  })
+
+  it('blocks Deploy and shows a hint when the service is disabled', async () => {
+    renderPanel({ service: { ...service, enabled: false } })
+    await screen.findByText('no deployments yet')
+
+    expect(screen.getByRole('button', { name: 'Deploy' })).toBeDisabled()
+    expect(screen.getByText(/new deployments are blocked while disabled/)).toBeInTheDocument()
   })
 })

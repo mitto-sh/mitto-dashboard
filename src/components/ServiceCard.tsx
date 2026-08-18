@@ -61,6 +61,14 @@ export function ServiceCard({ service, position, latestStatus, selected, onSelec
           style={{ backgroundColor: hasStatus ? color : theme.faint }}
         />
         <span className="flex-1 truncate text-[14.5px] font-semibold tracking-tight">{service.name}</span>
+        {!service.enabled && (
+          <span
+            className="flex-none rounded-[5px] border px-[6px] py-[1px] font-mono text-[9px] font-medium uppercase tracking-[0.08em]"
+            style={{ color: theme.danger, borderColor: theme.dangerBorder, backgroundColor: theme.dangerBg }}
+          >
+            disabled
+          </span>
+        )}
         <span
           className="inline-flex items-center gap-[5px] rounded-[5px] border px-[7px] py-[3px] font-mono text-[10px] font-medium uppercase tracking-[0.08em]"
           style={{ color: theme.sec, backgroundColor: theme.chip, borderColor: theme.chipBorder }}

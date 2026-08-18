@@ -13,6 +13,7 @@ const service: Service = {
   port: 3000,
   cpu: 256,
   memory: 512,
+  enabled: true,
 }
 
 function renderCard(overrides: Partial<Parameters<typeof ServiceCard>[0]> = {}) {
@@ -55,5 +56,15 @@ describe('ServiceCard', () => {
     const { onSelect } = renderCard()
     fireEvent.click(screen.getByTestId('service-card-svc-1'))
     expect(onSelect).toHaveBeenCalledWith(service)
+  })
+
+  it('omits the disabled badge when enabled', () => {
+    renderCard()
+    expect(screen.queryByText('disabled')).not.toBeInTheDocument()
+  })
+
+  it('shows a disabled badge when the service is disabled', () => {
+    renderCard({ service: { ...service, enabled: false } })
+    expect(screen.getByText('disabled')).toBeInTheDocument()
   })
 })

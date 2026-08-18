@@ -68,6 +68,8 @@ export const api = {
     dockerfilePath?: string
   }) =>
     request<Service>('/services', { method: 'POST', body: JSON.stringify(data) }),
+  updateService: (id: string, data: { enabled?: boolean }) =>
+    request<Service>(`/services/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   deleteService: (id: string) => request<void>(`/services/${id}`, { method: 'DELETE' }),
 
   listDeployments: (serviceId: string) =>

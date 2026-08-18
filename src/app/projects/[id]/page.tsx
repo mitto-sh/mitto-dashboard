@@ -60,6 +60,13 @@ function ProjectCanvasView({ projectId }: { projectId: string }) {
     setSelectedService(null)
   }
 
+  function handleServiceUpdated(updated: Service) {
+    setProject((prev) =>
+      prev ? { ...prev, services: (prev.services ?? []).map((s) => (s.id === updated.id ? updated : s)) } : prev,
+    )
+    setSelectedService(updated)
+  }
+
   function handleDeploymentTriggered(deployment: Deployment) {
     setLatestDeployments((prev) => ({ ...prev, [deployment.serviceId]: deployment }))
   }
@@ -148,6 +155,7 @@ function ProjectCanvasView({ projectId }: { projectId: string }) {
           service={selectedService}
           onClose={() => setSelectedService(null)}
           onServiceDeleted={handleServiceDeleted}
+          onServiceUpdated={handleServiceUpdated}
           onDeploymentTriggered={handleDeploymentTriggered}
         />
       )}

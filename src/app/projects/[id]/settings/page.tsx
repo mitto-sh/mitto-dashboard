@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { AuthGuard } from '@/components/AuthGuard'
 import { Logo } from '@/components/Logo'
 import { DeleteProjectDialog } from '@/components/DeleteProjectDialog'
+import { ToggleSwitch } from '@/components/ToggleSwitch'
 import { ArrowLeftIcon, Trash2Icon } from '@/components/icons'
 import { useThemeContext } from '@/components/ThemeProvider'
 import { api } from '@/lib/api'
@@ -13,26 +14,6 @@ import { validateProjectForm, slugify } from '@/lib/validation'
 import { identityColor, initialFor } from '@/lib/identity'
 import { formatRelativeTime } from '@/lib/time'
 import type { Project } from '@/lib/types'
-import type { Theme } from '@/lib/theme'
-
-function ToggleSwitch({ checked, onChange, label, theme }: { checked: boolean; onChange: () => void; label: string; theme: Theme }) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      aria-label={label}
-      onClick={onChange}
-      className="box-border inline-flex h-5 w-9 flex-none items-center rounded-full p-[2px] transition-colors"
-      style={{ backgroundColor: checked ? theme.accent : theme.border }}
-    >
-      <span
-        className="block h-4 w-4 rounded-full bg-white transition-transform"
-        style={{ transform: checked ? 'translateX(16px)' : 'translateX(0)' }}
-      />
-    </button>
-  )
-}
 
 function ProjectSettingsView({ projectId }: { projectId: string }) {
   const router = useRouter()
@@ -178,14 +159,14 @@ function ProjectSettingsView({ projectId }: { projectId: string }) {
                 <p className="text-[13.5px]" style={{ color: theme.ink }}>Private</p>
                 <p className="mt-[2px] font-mono text-[11.5px]" style={{ color: theme.faint }}>reserved for future team features</p>
               </div>
-              <ToggleSwitch checked={isPrivate} onChange={() => setIsPrivate((v) => !v)} label="Toggle private" theme={theme} />
+              <ToggleSwitch checked={isPrivate} onChange={() => setIsPrivate((v) => !v)} label="Toggle private" />
             </div>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-[13.5px]" style={{ color: theme.ink }}>Enabled</p>
                 <p className="mt-[2px] font-mono text-[11.5px]" style={{ color: theme.faint }}>new deployments are blocked while disabled</p>
               </div>
-              <ToggleSwitch checked={enabled} onChange={() => setEnabled((v) => !v)} label="Toggle enabled" theme={theme} />
+              <ToggleSwitch checked={enabled} onChange={() => setEnabled((v) => !v)} label="Toggle enabled" />
             </div>
           </div>
 

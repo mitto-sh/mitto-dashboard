@@ -25,7 +25,7 @@ const repo: GithubRepo = {
 }
 
 const createdService: Service = {
-  id: 's1', projectId: 'p1', name: 'web', type: 'web', port: 3000, cpu: 256, memory: 512,
+  id: 's1', projectId: 'p1', name: 'web', type: 'web', port: 3000, cpu: 256, memory: 512, enabled: true,
   repoUrl: repo.html_url, repoProvider: 'github', defaultBranch: 'main',
   buildCommand: null, startCommand: null, outputDir: null, runtime: null,
 }

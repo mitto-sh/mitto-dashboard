@@ -7,12 +7,14 @@ import { statusLabel } from '@/lib/status'
 import { statusColorFor } from '@/lib/theme'
 import { formatRelativeTime } from '@/lib/time'
 import { useThemeContext } from './ThemeProvider'
+import { ToggleSwitch } from './ToggleSwitch'
 import { ServiceTypeIcon, XIcon, RocketIcon, Trash2Icon } from './icons'
 
 interface ServiceDetailPanelProps {
   service: Service
   onClose: () => void
   onServiceDeleted: (serviceId: string) => void
+  onServiceUpdated: (service: Service) => void
   onDeploymentTriggered: (deployment: Deployment) => void
 }
 
@@ -22,6 +24,7 @@ export function ServiceDetailPanel({
   service,
   onClose,
   onServiceDeleted,
+  onServiceUpdated,
   onDeploymentTriggered,
 }: ServiceDetailPanelProps) {
   const { theme, dict } = useThemeContext()
@@ -31,6 +34,7 @@ export function ServiceDetailPanel({
   const [newValue, setNewValue] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [togglingEnabled, setTogglingEnabled] = useState(false)
 
   useEffect(() => {
     api.listDeployments(service.id).then(setDeployments).catch(() => setDeployments([]))
@@ -89,6 +93,16 @@ export function ServiceDetailPanel({
     onServiceDeleted(service.id)
   }
 
+  async function handleToggleEnabled() {
+    setTogglingEnabled(true)
+    try {
+      const updated = await api.updateService(service.id, { enabled: !service.enabled })
+      onServiceUpdated(updated)
+    } finally {
+      setTogglingEnabled(false)
+    }
+  }
+
   return (
     <aside
       className="fixed right-0 top-0 z-30 h-full w-[400px] overflow-y-auto border-l"
@@ -123,6 +137,15 @@ export function ServiceDetailPanel({
           >
             {service.repoUrl.replace(/^https?:\/\/(www\.)?/, '')} @ {service.defaultBranch}
           </a>
+        )}
+        <div className="ml-[18px] mt-3 flex items-center justify-between">
+          <span className="text-[12.5px]" style={{ color: theme.sec }}>Enabled</span>
+          <ToggleSwitch checked={service.enabled} onChange={handleToggleEnabled} label="Toggle service enabled" disabled={togglingEnabled} />
+        </div>
+        {!service.enabled && (
+          <p className="ml-[18px] mt-1 font-mono text-[11px]" style={{ color: theme.muted }}>
+            new deployments are blocked while disabled
+          </p>
         )}
       </div>
 
@@ -159,7 +182,7 @@ export function ServiceDetailPanel({
         <div className="flex gap-2">
           <button
             onClick={handleDeploy}
-            disabled={busy}
+            disabled={busy || !service.enabled}
             className="inline-flex items-center gap-[6px] rounded-lg px-4 py-2 text-[12.5px] font-semibold transition-colors disabled:opacity-50"
             style={{ backgroundColor: theme.accent, color: theme.accentInk }}
           >

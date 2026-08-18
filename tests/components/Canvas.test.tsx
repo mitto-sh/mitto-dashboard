@@ -5,8 +5,8 @@ import { renderWithTheme } from '../helpers/renderWithTheme'
 import type { Service, Deployment } from '@/lib/types'
 
 const services: Service[] = [
-  { id: 'svc-1', projectId: 'p1', name: 'web', type: 'web', port: 3000, cpu: 256, memory: 512 },
-  { id: 'svc-2', projectId: 'p1', name: 'worker', type: 'worker', port: null, cpu: 256, memory: 512 },
+  { id: 'svc-1', projectId: 'p1', name: 'web', type: 'web', port: 3000, cpu: 256, memory: 512, enabled: true },
+  { id: 'svc-2', projectId: 'p1', name: 'worker', type: 'worker', port: null, cpu: 256, memory: 512, enabled: true },
 ]
 
 const deployments: Record<string, Deployment | undefined> = {

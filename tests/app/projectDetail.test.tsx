@@ -14,6 +14,7 @@ vi.mock('@/lib/api', () => ({
     getProject: vi.fn(),
     listDeployments: vi.fn(),
     createService: vi.fn(),
+    updateService: vi.fn(),
     listEnvVars: vi.fn(),
     listGithubInstallations: vi.fn(),
     listInstallationRepos: vi.fn(),
@@ -24,7 +25,7 @@ vi.mock('@/lib/api', () => ({
 import { api } from '@/lib/api'
 
 const service: Service = {
-  id: 'svc-1', projectId: 'p1', name: 'web', type: 'web', port: 3000, cpu: 256, memory: 512,
+  id: 'svc-1', projectId: 'p1', name: 'web', type: 'web', port: 3000, cpu: 256, memory: 512, enabled: true,
   repoUrl: null, repoProvider: null, defaultBranch: 'main',
   buildCommand: null, startCommand: null, outputDir: null, runtime: null,
 }
@@ -109,6 +110,22 @@ describe('ProjectPage (canvas)', () => {
     fireEvent.click(screen.getByTestId('service-card-svc-1'))
 
     expect(await screen.findByLabelText('Close panel')).toBeInTheDocument()
+  })
+
+  it('disables a service from the panel and reflects it on the canvas card', async () => {
+    vi.mocked(api.updateService).mockResolvedValue({ ...service, enabled: false })
+
+    const { default: ProjectPage } = await import('@/app/projects/[id]/page')
+    renderWithTheme(<ProjectPage />)
+
+    await screen.findByText('my-app')
+    fireEvent.click(screen.getByTestId('service-card-svc-1'))
+    fireEvent.click(await screen.findByLabelText('Toggle service enabled'))
+
+    await waitFor(() => {
+      expect(api.updateService).toHaveBeenCalledWith('svc-1', { enabled: false })
+    })
+    expect(await screen.findAllByText('disabled')).not.toHaveLength(0)
   })
 
   it('links the settings icon to the project settings page', async () => {

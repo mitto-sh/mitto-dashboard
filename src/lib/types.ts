@@ -28,6 +28,7 @@ export interface Service {
   port: number | null
   cpu: number
   memory: number
+  enabled: boolean
   repoUrl: string | null
   repoProvider: RepoProvider | null
   defaultBranch: string
