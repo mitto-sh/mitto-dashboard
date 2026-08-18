@@ -12,7 +12,6 @@ function storageKey(projectId: string): string {
   return `mitto_canvas_positions_${projectId}`
 }
 
-// Fallback grid position for a service that has never been dragged before.
 export function defaultPosition(index: number): Position {
   const col = index % COLUMNS
   const row = Math.floor(index / COLUMNS)

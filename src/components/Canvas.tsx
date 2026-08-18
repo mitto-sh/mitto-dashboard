@@ -27,11 +27,6 @@ export function Canvas({
 }: CanvasProps) {
   const { theme, dict } = useThemeContext()
   const [positions, setPositions] = useState<Record<string, Position>>({})
-  // Without an activation distance, PointerSensor treats any sub-pixel jitter
-  // between mousedown/mouseup as a drag attempt and swallows the click that
-  // would otherwise open the service panel — real mice always jitter a bit,
-  // fireEvent.click in tests never does, which is why this only showed up
-  // when clicking for real.
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
 
   useEffect(() => {

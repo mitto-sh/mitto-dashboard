@@ -20,8 +20,6 @@ type Step =
   | { name: 'importing' }
   | { name: 'error'; message: string }
 
-// Fallback when the repo has no mitto.yaml — still attach the repo to a
-// service so it's not a dead end, the user can adjust it after import.
 function defaultServiceConfig(repo: GithubRepo): MittoServiceConfig[] {
   return [{ name: repo.name, type: 'web' }]
 }

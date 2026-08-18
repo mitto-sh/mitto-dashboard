@@ -19,7 +19,7 @@ export default defineConfig({
       reporter: ['text', 'html'],
       include: ['src/**/*.{ts,tsx}'],
       exclude: [
-        'src/app/layout.tsx', // static HTML shell, no logic
+        'src/app/layout.tsx',
       ],
       thresholds: {
         lines: 85,
