@@ -68,7 +68,6 @@ describe('api client', () => {
     await api.me()
     await api.createProject({ name: 'x' })
     await api.createService({ projectId: 'p1', name: 'web', type: 'web' })
-    await api.deleteService('svc-1')
     await api.listDeployments('svc-1')
     await api.triggerDeployment('svc-1')
     await api.cancelDeployment('dep-1')

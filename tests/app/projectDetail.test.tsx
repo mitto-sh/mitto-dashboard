@@ -120,7 +120,8 @@ describe('ProjectPage (canvas)', () => {
 
     await screen.findByText('my-app')
     fireEvent.click(screen.getByTestId('service-card-svc-1'))
-    fireEvent.click(await screen.findByLabelText('Toggle service enabled'))
+    fireEvent.click(await screen.findByRole('button', { name: 'Disable service' }))
+    fireEvent.click((await screen.findAllByRole('button', { name: 'Disable service' }))[1]!)
 
     await waitFor(() => {
       expect(api.updateService).toHaveBeenCalledWith('svc-1', { enabled: false })

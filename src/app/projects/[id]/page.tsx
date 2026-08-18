@@ -53,13 +53,6 @@ function ProjectCanvasView({ projectId }: { projectId: string }) {
     setAddServiceStep('closed')
   }
 
-  function handleServiceDeleted(serviceId: string) {
-    setProject((prev) =>
-      prev ? { ...prev, services: (prev.services ?? []).filter((s) => s.id !== serviceId) } : prev,
-    )
-    setSelectedService(null)
-  }
-
   function handleServiceUpdated(updated: Service) {
     setProject((prev) =>
       prev ? { ...prev, services: (prev.services ?? []).map((s) => (s.id === updated.id ? updated : s)) } : prev,
@@ -154,7 +147,6 @@ function ProjectCanvasView({ projectId }: { projectId: string }) {
         <ServiceDetailPanel
           service={selectedService}
           onClose={() => setSelectedService(null)}
-          onServiceDeleted={handleServiceDeleted}
           onServiceUpdated={handleServiceUpdated}
           onDeploymentTriggered={handleDeploymentTriggered}
         />

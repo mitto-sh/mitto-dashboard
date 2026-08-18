@@ -32,7 +32,6 @@ vi.mock('@/lib/api', () => ({
     cancelDeployment: vi.fn(),
     upsertEnvVars: vi.fn(),
     deleteEnvVar: vi.fn(),
-    deleteService: vi.fn(),
     updateService: vi.fn(),
   },
 }))
@@ -41,20 +40,18 @@ import { api } from '@/lib/api'
 
 function renderPanel(overrides: Partial<Parameters<typeof ServiceDetailPanel>[0]> = {}) {
   const onClose = vi.fn()
-  const onServiceDeleted = vi.fn()
   const onServiceUpdated = vi.fn()
   const onDeploymentTriggered = vi.fn()
   renderWithTheme(
     <ServiceDetailPanel
       service={service}
       onClose={onClose}
-      onServiceDeleted={onServiceDeleted}
       onServiceUpdated={onServiceUpdated}
       onDeploymentTriggered={onDeploymentTriggered}
       {...overrides}
     />,
   )
-  return { onClose, onServiceDeleted, onServiceUpdated, onDeploymentTriggered }
+  return { onClose, onServiceUpdated, onDeploymentTriggered }
 }
 
 describe('ServiceDetailPanel', () => {
@@ -129,14 +126,6 @@ describe('ServiceDetailPanel', () => {
     })
   })
 
-  it('deletes the service and reports it to the parent', async () => {
-    const { onServiceDeleted } = renderPanel()
-    await screen.findByText('no deployments yet')
-    fireEvent.click(screen.getByText('Delete service'))
-
-    await waitFor(() => expect(onServiceDeleted).toHaveBeenCalledWith('svc-1'))
-  })
-
   it('calls onClose when the close button is clicked', async () => {
     const { onClose } = renderPanel()
     await screen.findByText('no deployments yet')
@@ -144,18 +133,58 @@ describe('ServiceDetailPanel', () => {
     expect(onClose).toHaveBeenCalled()
   })
 
-  it('disables a service and reports the update to the parent', async () => {
+  it('opens a confirmation modal when clicking Disable service, without calling the API yet', async () => {
+    renderPanel()
+    await screen.findByText('no deployments yet')
+    fireEvent.click(screen.getByRole('button', { name: 'Disable service' }))
+
+    expect(await screen.findByText(/This will stop the service and its current deployment\./)).toBeInTheDocument()
+    expect(api.updateService).not.toHaveBeenCalled()
+  })
+
+  it('closes the confirmation modal without disabling when Keep running is clicked', async () => {
+    renderPanel()
+    await screen.findByText('no deployments yet')
+    fireEvent.click(screen.getByRole('button', { name: 'Disable service' }))
+    await screen.findByText(/This will stop the service/)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Keep running' }))
+
+    await waitFor(() => expect(screen.queryByText(/This will stop the service/)).not.toBeInTheDocument())
+    expect(api.updateService).not.toHaveBeenCalled()
+  })
+
+  it('disables the service and reports the update once the modal is confirmed', async () => {
     const updated = { ...service, enabled: false }
     vi.mocked(api.updateService).mockResolvedValue(updated)
 
     const { onServiceUpdated } = renderPanel()
     await screen.findByText('no deployments yet')
-    fireEvent.click(screen.getByLabelText('Toggle service enabled'))
+    fireEvent.click(screen.getByRole('button', { name: 'Disable service' }))
+    await screen.findByText(/This will stop the service/)
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Disable service' })[1]!)
 
     await waitFor(() => {
       expect(api.updateService).toHaveBeenCalledWith('svc-1', { enabled: false })
       expect(onServiceUpdated).toHaveBeenCalledWith(updated)
     })
+    expect(screen.queryByText(/This will stop the service/)).not.toBeInTheDocument()
+  })
+
+  it('enables a disabled service directly, without a confirmation modal', async () => {
+    const updated = { ...service, enabled: true }
+    vi.mocked(api.updateService).mockResolvedValue(updated)
+
+    const { onServiceUpdated } = renderPanel({ service: { ...service, enabled: false } })
+    await screen.findByText('no deployments yet')
+    fireEvent.click(screen.getByRole('button', { name: 'Enable service' }))
+
+    await waitFor(() => {
+      expect(api.updateService).toHaveBeenCalledWith('svc-1', { enabled: true })
+      expect(onServiceUpdated).toHaveBeenCalledWith(updated)
+    })
+    expect(screen.queryByText(/This will stop the service/)).not.toBeInTheDocument()
   })
 
   it('blocks Deploy and shows a hint when the service is disabled', async () => {

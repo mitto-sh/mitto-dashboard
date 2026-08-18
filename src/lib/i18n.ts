@@ -6,7 +6,14 @@ export interface Dictionary {
   envVars: string
   deploy: string
   cancel: string
-  deleteService: string
+  enabledLabel: string
+  disabledLabel: string
+  enableService: string
+  disableService: string
+  blockedNote: string
+  confirmDisablePrefix: string
+  confirmDisableWarning: string
+  keepRunning: string
   noDeploys: string
   emptyTitle: string
   emptySub: string
@@ -29,7 +36,14 @@ export const EN: Dictionary = {
   envVars: 'Environment variables',
   deploy: 'Deploy',
   cancel: 'Cancel',
-  deleteService: 'Delete service',
+  enabledLabel: 'Enabled',
+  disabledLabel: 'Disabled',
+  enableService: 'Enable service',
+  disableService: 'Disable service',
+  blockedNote: 'new deployments are blocked while disabled',
+  confirmDisablePrefix: 'Disable',
+  confirmDisableWarning: 'This will stop the service and its current deployment.',
+  keepRunning: 'Keep running',
   noDeploys: 'no deployments yet',
   emptyTitle: 'No services in this project',
   emptySub: 'add a web, worker, cron or static service',
@@ -52,7 +66,14 @@ export const ES: Dictionary = {
   envVars: 'Variables de entorno',
   deploy: 'Deploy',
   cancel: 'Cancelar',
-  deleteService: 'Eliminar servicio',
+  enabledLabel: 'Habilitado',
+  disabledLabel: 'Deshabilitado',
+  enableService: 'Habilitar servicio',
+  disableService: 'Deshabilitar servicio',
+  blockedNote: 'los nuevos deployments quedan bloqueados mientras esté deshabilitado',
+  confirmDisablePrefix: 'Deshabilitar',
+  confirmDisableWarning: 'Esto detendrá el servicio y el despliegue en curso.',
+  keepRunning: 'Mantener activo',
   noDeploys: 'sin deployments todavía',
   emptyTitle: 'No hay servicios en este proyecto',
   emptySub: 'agregá un servicio web, worker, cron o static',
