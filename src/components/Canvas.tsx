@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { DndContext, type DragEndEvent } from '@dnd-kit/core'
+import { DndContext, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
 import type { Service, Deployment } from '@/lib/types'
 import { loadPositions, savePosition, resolvePosition, type Position } from '@/lib/canvasPositions'
 import { useThemeContext } from './ThemeProvider'
@@ -27,6 +27,12 @@ export function Canvas({
 }: CanvasProps) {
   const { theme, dict } = useThemeContext()
   const [positions, setPositions] = useState<Record<string, Position>>({})
+  // Without an activation distance, PointerSensor treats any sub-pixel jitter
+  // between mousedown/mouseup as a drag attempt and swallows the click that
+  // would otherwise open the service panel — real mice always jitter a bit,
+  // fireEvent.click in tests never does, which is why this only showed up
+  // when clicking for real.
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
 
   useEffect(() => {
     setPositions(loadPositions(projectId))
@@ -49,7 +55,7 @@ export function Canvas({
   }
 
   return (
-    <DndContext onDragEnd={handleDragEnd}>
+    <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
       <div
         className="relative h-[calc(100vh-56px)] w-full overflow-auto"
         style={{ backgroundColor: theme.canvas }}
