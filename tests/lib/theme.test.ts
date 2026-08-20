@@ -7,6 +7,7 @@ import {
   storeTheme,
   statusColorFor,
   hexWithAlpha,
+  cssVarsFor,
 } from '@/lib/theme'
 
 describe('theme', () => {
@@ -40,5 +41,18 @@ describe('theme', () => {
     expect(hexWithAlpha('#46E08C', 0.35)).toBe('#46E08C59')
     expect(hexWithAlpha('#000000', 0)).toBe('#00000000')
     expect(hexWithAlpha('#000000', 1)).toBe('#000000ff')
+  })
+
+  it('maps the brand accent to --primary, not --accent (which stays neutral)', () => {
+    const vars = cssVarsFor(BONE_THEME)
+    expect(vars['--primary']).toBe(BONE_THEME.accent)
+    expect(vars['--accent']).toBe(BONE_THEME.raised)
+    expect(vars['--accent']).not.toBe(BONE_THEME.accent)
+  })
+
+  it('produces distinct css vars for bone and graphite', () => {
+    expect(cssVarsFor(BONE_THEME)['--background']).toBe(BONE_THEME.canvas)
+    expect(cssVarsFor(GRAPHITE_THEME)['--background']).toBe(GRAPHITE_THEME.canvas)
+    expect(cssVarsFor(BONE_THEME)['--background']).not.toBe(cssVarsFor(GRAPHITE_THEME)['--background'])
   })
 })

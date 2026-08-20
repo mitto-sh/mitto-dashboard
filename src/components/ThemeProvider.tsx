@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState } from 'react'
-import { THEMES, getStoredTheme, storeTheme, type Theme, type ThemeMode } from '@/lib/theme'
+import { THEMES, getStoredTheme, storeTheme, cssVarsFor, type Theme, type ThemeMode } from '@/lib/theme'
 import { DICTIONARIES, getStoredLang, storeLang, type Dictionary, type Lang } from '@/lib/i18n'
 
 interface ThemeContextValue {
@@ -23,6 +23,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setMode(getStoredTheme())
     setLang(getStoredLang())
   }, [])
+
+  useEffect(() => {
+    const root = document.documentElement
+    root.dataset.theme = mode
+    for (const [key, value] of Object.entries(cssVarsFor(THEMES[mode]))) {
+      root.style.setProperty(key, value)
+    }
+  }, [mode])
 
   function toggleTheme() {
     setMode((prev) => {

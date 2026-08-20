@@ -176,7 +176,7 @@ export function ImportFromGithubModal({ projectId, onCancel, onImported }: Impor
               Importing <strong>{step.repo.full_name}</strong> as:
             </p>
             <div className="rounded-lg border p-3" style={{ borderColor: theme.line }}>
-              <p className="mb-2 font-mono text-[11px] uppercase tracking-[0.08em]" style={{ color: theme.muted }}>
+              <p className="mb-2 font-mono text-label uppercase tracking-[0.08em]" style={{ color: theme.muted }}>
                 {step.detected.length > 1 ? 'Services detected (mitto.yaml)' : 'Service'}
               </p>
               <ul className="flex flex-col gap-1">

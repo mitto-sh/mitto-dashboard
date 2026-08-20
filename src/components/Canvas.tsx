@@ -69,7 +69,7 @@ export function Canvas({
             </div>
             <button
               onClick={onAddService}
-              className="mt-1 inline-flex items-center gap-[6px] rounded-lg px-[18px] py-[9px] text-[13px] font-semibold transition-colors"
+              className="mt-1 inline-flex items-center gap-[6px] rounded-lg px-[18px] py-[9px] text-caption font-semibold transition-colors"
               style={{ backgroundColor: theme.accent, color: theme.accentInk }}
             >
               <PlusIcon size={13} />
@@ -89,7 +89,7 @@ export function Canvas({
           ))
         )}
         {services.length > 0 && (
-          <div className="pointer-events-none absolute bottom-4 right-5 font-mono text-[11px]" style={{ color: theme.faint }}>
+          <div className="pointer-events-none absolute bottom-4 right-5 font-mono text-label" style={{ color: theme.faint }}>
             {String(services.length).padStart(2, '0')} {dict.servicesFooter}
           </div>
         )}

@@ -47,7 +47,7 @@ export function CreateProjectModal({ onCancel, onCreated }: CreateProjectModalPr
       >
         <h2 className="mb-5 text-[15px] font-semibold" style={{ color: theme.ink }}>New project</h2>
 
-        <label className="mb-[6px] block font-mono text-[11px] uppercase tracking-[0.08em]" style={{ color: theme.muted }} htmlFor="new-project-name">
+        <label className="mb-[6px] block font-mono text-label uppercase tracking-[0.08em]" style={{ color: theme.muted }} htmlFor="new-project-name">
           Name
         </label>
         <input

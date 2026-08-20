@@ -2,6 +2,8 @@ export type Lang = 'en' | 'es'
 
 export interface Dictionary {
   addService: string
+  overview: string
+  settings: string
   deployments: string
   envVars: string
   deploy: string
@@ -32,6 +34,8 @@ export interface Dictionary {
 
 export const EN: Dictionary = {
   addService: 'Add service',
+  overview: 'Overview',
+  settings: 'Settings',
   deployments: 'Deployments',
   envVars: 'Environment variables',
   deploy: 'Deploy',
@@ -62,6 +66,8 @@ export const EN: Dictionary = {
 
 export const ES: Dictionary = {
   addService: 'Agregar servicio',
+  overview: 'Resumen',
+  settings: 'Configuración',
   deployments: 'Despliegues',
   envVars: 'Variables de entorno',
   deploy: 'Deploy',

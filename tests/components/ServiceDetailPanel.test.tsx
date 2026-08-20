@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { screen, fireEvent, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { renderWithTheme } from '../helpers/renderWithTheme'
 import { ServiceDetailPanel } from '@/components/ServiceDetailPanel'
 import type { Service, Deployment, EnvVar } from '@/lib/types'
@@ -54,6 +55,10 @@ function renderPanel(overrides: Partial<Parameters<typeof ServiceDetailPanel>[0]
   return { onClose, onServiceUpdated, onDeploymentTriggered }
 }
 
+async function openSettingsTab() {
+  await userEvent.click(screen.getByRole('tab', { name: 'Settings' }))
+}
+
 describe('ServiceDetailPanel', () => {
   beforeEach(() => {
     vi.mocked(api.listDeployments).mockResolvedValue([])
@@ -106,6 +111,8 @@ describe('ServiceDetailPanel', () => {
 
   it('lists env vars and deletes one', async () => {
     renderPanel()
+    await screen.findByText('no deployments yet')
+    await openSettingsTab()
     expect(await screen.findByText('NODE_ENV')).toBeInTheDocument()
 
     fireEvent.click(screen.getByLabelText('Remove variable'))
@@ -115,6 +122,8 @@ describe('ServiceDetailPanel', () => {
   it('adds a new env var', async () => {
     vi.mocked(api.upsertEnvVars).mockResolvedValue([{ ...envVar, key: 'PORT', value: '***' }])
     renderPanel()
+    await screen.findByText('no deployments yet')
+    await openSettingsTab()
     await screen.findByText('NODE_ENV')
 
     fireEvent.change(screen.getByLabelText('Env var key'), { target: { value: 'port' } })
@@ -133,10 +142,10 @@ describe('ServiceDetailPanel', () => {
     expect(onClose).toHaveBeenCalled()
   })
 
-  it('opens a confirmation modal when clicking Disable service, without calling the API yet', async () => {
+  it('opens a confirmation modal when toggling the footer switch off, without calling the API yet', async () => {
     renderPanel()
     await screen.findByText('no deployments yet')
-    fireEvent.click(screen.getByRole('button', { name: 'Disable service' }))
+    await userEvent.click(screen.getByRole('switch', { name: 'Disable service' }))
 
     expect(await screen.findByText(/This will stop the service and its current deployment\./)).toBeInTheDocument()
     expect(api.updateService).not.toHaveBeenCalled()
@@ -145,7 +154,7 @@ describe('ServiceDetailPanel', () => {
   it('closes the confirmation modal without disabling when Keep running is clicked', async () => {
     renderPanel()
     await screen.findByText('no deployments yet')
-    fireEvent.click(screen.getByRole('button', { name: 'Disable service' }))
+    await userEvent.click(screen.getByRole('switch', { name: 'Disable service' }))
     await screen.findByText(/This will stop the service/)
 
     fireEvent.click(screen.getByRole('button', { name: 'Keep running' }))
@@ -160,10 +169,8 @@ describe('ServiceDetailPanel', () => {
 
     const { onServiceUpdated } = renderPanel()
     await screen.findByText('no deployments yet')
-    fireEvent.click(screen.getByRole('button', { name: 'Disable service' }))
-    await screen.findByText(/This will stop the service/)
-
-    fireEvent.click(screen.getAllByRole('button', { name: 'Disable service' })[1]!)
+    await userEvent.click(screen.getByRole('switch', { name: 'Disable service' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Disable service' }))
 
     await waitFor(() => {
       expect(api.updateService).toHaveBeenCalledWith('svc-1', { enabled: false })
@@ -178,7 +185,7 @@ describe('ServiceDetailPanel', () => {
 
     const { onServiceUpdated } = renderPanel({ service: { ...service, enabled: false } })
     await screen.findByText('no deployments yet')
-    fireEvent.click(screen.getByRole('button', { name: 'Enable service' }))
+    await userEvent.click(screen.getByRole('switch', { name: 'Enable service' }))
 
     await waitFor(() => {
       expect(api.updateService).toHaveBeenCalledWith('svc-1', { enabled: true })
@@ -193,5 +200,14 @@ describe('ServiceDetailPanel', () => {
 
     expect(screen.getByRole('button', { name: 'Deploy' })).toBeDisabled()
     expect(screen.getByText(/new deployments are blocked while disabled/)).toBeInTheDocument()
+  })
+
+  it('keeps the enable/disable switch visible on both tabs', async () => {
+    renderPanel()
+    await screen.findByText('no deployments yet')
+    expect(screen.getByRole('switch', { name: 'Disable service' })).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Settings' }))
+    expect(screen.getByRole('switch', { name: 'Disable service' })).toBeInTheDocument()
   })
 })

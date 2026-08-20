@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
 import { useThemeContext } from './ThemeProvider'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu'
 import { MoreHorizontalIcon, LockIcon, GlobeIcon, SettingsIcon, ServiceTypeIcon } from './icons'
 import { formatRelativeTime } from '@/lib/time'
 import { identityColor, initialFor } from '@/lib/identity'
@@ -11,11 +11,11 @@ import type { Project } from '@/lib/types'
 interface ProjectCardProps {
   project: Project
   onRequestDelete: (project: Project) => void
+  onRequestSettings: (project: Project) => void
 }
 
-export function ProjectCard({ project, onRequestDelete }: ProjectCardProps) {
+export function ProjectCard({ project, onRequestDelete, onRequestSettings }: ProjectCardProps) {
   const { theme } = useThemeContext()
-  const [menuOpen, setMenuOpen] = useState(false)
 
   const services = project.services ?? []
   const serviceCount = services.length
@@ -45,7 +45,7 @@ export function ProjectCard({ project, onRequestDelete }: ProjectCardProps) {
               <span className="truncate text-sm font-medium" style={{ color: theme.ink }}>{project.name}</span>
               {!project.enabled && (
                 <span
-                  className="flex-none rounded-[5px] border px-[6px] py-[1px] font-mono text-[9px] font-medium uppercase tracking-[0.08em]"
+                  className="flex-none rounded-[5px] border px-[6px] py-[1px] font-mono text-label font-medium uppercase tracking-[0.08em]"
                   style={{ color: theme.danger, borderColor: theme.dangerBorder, backgroundColor: theme.dangerBg }}
                 >
                   disabled
@@ -66,11 +66,11 @@ export function ProjectCard({ project, onRequestDelete }: ProjectCardProps) {
               <ServiceTypeIcon type={service.type} size={11} />
             </span>
           ))}
-          <span className="font-mono text-[11px]" style={{ color: theme.faint }}>{serviceCountLabel}</span>
+          <span className="font-mono text-label" style={{ color: theme.faint }}>{serviceCountLabel}</span>
         </div>
 
         <div
-          className="mt-[14px] flex items-center gap-2 border-t pt-3 font-mono text-[11px]"
+          className="mt-[14px] flex items-center gap-2 border-t pt-3 font-mono text-label"
           style={{ borderColor: theme.subtle, color: theme.muted }}
         >
           <span className="inline-flex items-center gap-1">
@@ -84,52 +84,27 @@ export function ProjectCard({ project, onRequestDelete }: ProjectCardProps) {
         </div>
       </Link>
 
-      <button
-        onClick={(e) => {
-          e.preventDefault()
-          e.stopPropagation()
-          setMenuOpen((prev) => !prev)
-        }}
-        aria-label="Project actions"
-        className="absolute right-4 top-4 inline-flex h-7 w-7 items-center justify-center rounded-lg opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100"
-        style={{ color: theme.muted, backgroundColor: menuOpen ? theme.chip : 'transparent' }}
-      >
-        <MoreHorizontalIcon size={15} />
-      </button>
-
-      {menuOpen && (
-        <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
           <button
-            aria-label="Close menu"
-            className="fixed inset-0 z-10 cursor-default"
-            onClick={() => setMenuOpen(false)}
-          />
-          <div
-            className="absolute right-4 top-12 z-20 w-40 overflow-hidden rounded-lg border py-1"
-            style={{ borderColor: theme.border, backgroundColor: theme.raised, boxShadow: `0 8px 24px ${theme.panelShadow}` }}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation() }}
+            aria-label="Project actions"
+            className="absolute right-4 top-4 inline-flex h-7 w-7 items-center justify-center rounded-lg opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100 data-[state=open]:opacity-100"
+            style={{ color: theme.muted }}
           >
-            <Link
-              href={`/projects/${project.id}/settings`}
-              onClick={() => setMenuOpen(false)}
-              className="flex items-center gap-2 px-3 py-2 text-sm transition-colors"
-              style={{ color: theme.ink }}
-            >
-              <SettingsIcon size={13} />
-              Settings
-            </Link>
-            <button
-              onClick={() => {
-                setMenuOpen(false)
-                onRequestDelete(project)
-              }}
-              className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors"
-              style={{ color: theme.danger }}
-            >
-              Delete
-            </button>
-          </div>
-        </>
-      )}
+            <MoreHorizontalIcon size={15} />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onSelect={() => onRequestSettings(project)}>
+            <SettingsIcon size={13} />
+            Settings
+          </DropdownMenuItem>
+          <DropdownMenuItem variant="destructive" onSelect={() => onRequestDelete(project)}>
+            Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   )
 }

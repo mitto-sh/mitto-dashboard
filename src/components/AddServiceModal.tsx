@@ -48,7 +48,7 @@ export function AddServiceModal({ projectSlug, onCancel, onCreate }: AddServiceM
         <h2 className="text-[15px] font-semibold" style={{ color: theme.ink }}>{dict.addService}</h2>
         <p className="mb-5 mt-[6px] font-mono text-xs" style={{ color: theme.muted }}>{projectSlug}</p>
 
-        <label className="mb-[6px] block font-mono text-[11px] uppercase tracking-[0.08em]" style={labelStyle} htmlFor="service-name">
+        <label className="mb-[6px] block font-mono text-label uppercase tracking-[0.08em]" style={labelStyle} htmlFor="service-name">
           {dict.name}
         </label>
         <input
@@ -61,7 +61,7 @@ export function AddServiceModal({ projectSlug, onCancel, onCreate }: AddServiceM
         />
         {errors.name && <p className="-mt-3 mb-3 text-xs" style={{ color: theme.danger }}>{errors.name}</p>}
 
-        <label className="mb-[6px] block font-mono text-[11px] uppercase tracking-[0.08em]" style={labelStyle} htmlFor="service-type">
+        <label className="mb-[6px] block font-mono text-label uppercase tracking-[0.08em]" style={labelStyle} htmlFor="service-type">
           {dict.type}
         </label>
         <select
@@ -78,13 +78,13 @@ export function AddServiceModal({ projectSlug, onCancel, onCreate }: AddServiceM
         </select>
         {errors.type && <p className="-mt-3 mb-3 text-xs" style={{ color: theme.danger }}>{errors.type}</p>}
 
-        <label className="mb-[6px] block font-mono text-[11px] uppercase tracking-[0.08em]" style={labelStyle} htmlFor="service-port">
+        <label className="mb-[6px] block font-mono text-label uppercase tracking-[0.08em]" style={labelStyle} htmlFor="service-port">
           {dict.port} <span className="normal-case tracking-normal" style={{ color: theme.faint }}>{dict.optional}</span>
         </label>
         <input
           id="service-port"
           placeholder="3000"
-          className="mb-4 w-full rounded-lg border px-3 py-[9px] font-mono text-[13px] outline-none transition-colors"
+          className="mb-4 w-full rounded-lg border px-3 py-[9px] font-mono text-caption outline-none transition-colors"
           style={inputStyle}
           value={form.port}
           onChange={(e) => setForm({ ...form, port: e.target.value })}

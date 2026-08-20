@@ -3,11 +3,14 @@
 import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { AuthGuard } from '@/components/AuthGuard'
-import { Logo } from '@/components/Logo'
+import { AppHeader } from '@/components/AppHeader'
 import { SearchIcon, PlusIcon } from '@/components/icons'
 import { CreateProjectModal } from '@/components/CreateProjectModal'
 import { DeleteProjectDialog } from '@/components/DeleteProjectDialog'
 import { ProjectCard } from '@/components/ProjectCard'
+import { ProjectDetailPanel } from '@/components/ProjectDetailPanel'
+import { CommandPalette } from '@/components/CommandPalette'
+import type { EntityPanelTab } from '@/components/EntityPanel'
 import { useThemeContext } from '@/components/ThemeProvider'
 import { api } from '@/lib/api'
 import type { Project } from '@/lib/types'
@@ -33,14 +36,14 @@ function GithubStatusBanner() {
 
   if (connected) {
     return (
-      <p className="mb-6 rounded-lg border px-4 py-[10px] text-[13px]" style={{ borderColor: theme.line, backgroundColor: theme.raised, color: theme.sec }}>
+      <p className="mb-6 rounded-lg border px-4 py-[10px] text-caption" style={{ borderColor: theme.line, backgroundColor: theme.raised, color: theme.sec }}>
         GitHub connected. You can now import repositories.
       </p>
     )
   }
   if (errorCode) {
     return (
-      <p className="mb-6 rounded-lg border px-4 py-[10px] text-[13px]" style={{ borderColor: theme.dangerBorder, backgroundColor: theme.dangerBg, color: theme.danger }}>
+      <p className="mb-6 rounded-lg border px-4 py-[10px] text-caption" style={{ borderColor: theme.dangerBorder, backgroundColor: theme.dangerBg, color: theme.danger }}>
         {GITHUB_ERROR_MESSAGES[errorCode] ?? 'Something went wrong connecting GitHub.'}
       </p>
     )
@@ -55,12 +58,26 @@ function ProjectsList() {
   const [query, setQuery] = useState('')
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [deletingProject, setDeletingProject] = useState<Project | null>(null)
+  const [paletteOpen, setPaletteOpen] = useState(false)
+  const [settingsProject, setSettingsProject] = useState<Project | null>(null)
+  const [settingsTab, setSettingsTab] = useState<EntityPanelTab>('settings')
 
   useEffect(() => {
     api.listProjects().then((data) => {
       setProjects(data)
       setLoading(false)
     }).catch(() => setLoading(false))
+  }, [])
+
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        setPaletteOpen(true)
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
   }, [])
 
   function handleCreated(project: Project) {
@@ -73,19 +90,50 @@ function ProjectsList() {
     setDeletingProject(null)
   }
 
+  function handleProjectUpdated(updated: Project) {
+    setProjects((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))
+    setSettingsProject(updated)
+  }
+
+  function handleProjectDeletedFromSettings() {
+    setProjects((prev) => prev.filter((p) => p.id !== settingsProject?.id))
+    setSettingsProject(null)
+  }
+
   const filtered = projects.filter((p) =>
     p.name.toLowerCase().includes(query.toLowerCase()) || p.slug.toLowerCase().includes(query.toLowerCase()),
   )
 
   return (
     <div>
-      <header className="flex h-14 items-center justify-between border-b px-6" style={{ borderColor: theme.subtle }}>
-        <div className="flex items-center gap-[10px]">
-          <Logo size={11} />
-          <span className="font-mono text-[13px] font-medium" style={{ color: theme.ink }}>mitto</span>
-        </div>
-        <div className="h-7 w-7 rounded-full border" style={{ borderColor: theme.border, backgroundColor: theme.raised }} />
-      </header>
+      <AppHeader
+        actions={
+          <>
+            <button
+              onClick={() => setPaletteOpen(true)}
+              className="hidden items-center gap-[8px] rounded-lg border px-[10px] py-[9px] font-mono text-xs transition-colors sm:inline-flex"
+              style={{ borderColor: theme.border, backgroundColor: theme.surface, color: theme.muted }}
+            >
+              <SearchIcon size={13} />
+              Jump to…
+              <span
+                className="rounded-[4px] border px-[5px] py-[1px] text-label"
+                style={{ borderColor: theme.chipBorder, backgroundColor: theme.chip }}
+              >
+                ⌘K
+              </span>
+            </button>
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="inline-flex items-center gap-[6px] rounded-lg px-[14px] py-[7px] text-body-sm font-semibold transition-colors"
+              style={{ backgroundColor: theme.accent, color: theme.accentInk }}
+            >
+              <PlusIcon size={13} />
+              New project
+            </button>
+          </>
+        }
+      />
 
       <main className="mx-auto max-w-[1040px] px-6 py-12">
         <div className="mb-6 flex items-baseline gap-3">
@@ -115,14 +163,6 @@ function ProjectsList() {
               style={{ borderColor: theme.border, backgroundColor: theme.surface, color: theme.ink }}
             />
           </div>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="inline-flex items-center gap-[6px] rounded-lg px-[16px] py-[10px] text-[13px] font-semibold transition-colors"
-            style={{ backgroundColor: theme.accent, color: theme.accentInk }}
-          >
-            <PlusIcon size={13} />
-            New project
-          </button>
         </div>
 
         {loading ? (
@@ -137,7 +177,12 @@ function ProjectsList() {
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map((p) => (
-              <ProjectCard key={p.id} project={p} onRequestDelete={setDeletingProject} />
+              <ProjectCard
+                key={p.id}
+                project={p}
+                onRequestDelete={setDeletingProject}
+                onRequestSettings={(project) => { setSettingsProject(project); setSettingsTab('settings') }}
+              />
             ))}
           </div>
         )}
@@ -152,6 +197,20 @@ function ProjectsList() {
           project={deletingProject}
           onCancel={() => setDeletingProject(null)}
           onDeleted={handleDeleted}
+        />
+      )}
+
+      <CommandPalette projects={projects} open={paletteOpen} onOpenChange={setPaletteOpen} />
+
+      {settingsProject && (
+        <ProjectDetailPanel
+          project={settingsProject}
+          open
+          tab={settingsTab}
+          onTabChange={setSettingsTab}
+          onClose={() => setSettingsProject(null)}
+          onProjectUpdated={handleProjectUpdated}
+          onDeleted={handleProjectDeletedFromSettings}
         />
       )}
     </div>

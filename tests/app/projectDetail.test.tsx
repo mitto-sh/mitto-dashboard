@@ -1,11 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { screen, fireEvent, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { renderWithTheme } from '../helpers/renderWithTheme'
 import { setToken } from '@/lib/auth'
 import type { Project, Service } from '@/lib/types'
 
+const routerPush = vi.fn()
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ replace: vi.fn() }),
+  useRouter: () => ({ replace: vi.fn(), push: routerPush }),
   useParams: () => ({ id: 'p1' }),
 }))
 
@@ -15,6 +17,8 @@ vi.mock('@/lib/api', () => ({
     listDeployments: vi.fn(),
     createService: vi.fn(),
     updateService: vi.fn(),
+    updateProject: vi.fn(),
+    deleteProject: vi.fn(),
     listEnvVars: vi.fn(),
     listGithubInstallations: vi.fn(),
     listInstallationRepos: vi.fn(),
@@ -37,6 +41,7 @@ const project: Project = {
 describe('ProjectPage (canvas)', () => {
   beforeEach(() => {
     setToken('a-token')
+    routerPush.mockClear()
     vi.mocked(api.getProject).mockResolvedValue(project)
     vi.mocked(api.listDeployments).mockResolvedValue([])
     vi.mocked(api.listEnvVars).mockResolvedValue([])
@@ -120,8 +125,8 @@ describe('ProjectPage (canvas)', () => {
 
     await screen.findByText('my-app')
     fireEvent.click(screen.getByTestId('service-card-svc-1'))
+    await userEvent.click(await screen.findByRole('switch', { name: 'Disable service' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Disable service' }))
-    fireEvent.click((await screen.findAllByRole('button', { name: 'Disable service' }))[1]!)
 
     await waitFor(() => {
       expect(api.updateService).toHaveBeenCalledWith('svc-1', { enabled: false })
@@ -129,12 +134,14 @@ describe('ProjectPage (canvas)', () => {
     expect(await screen.findAllByText('disabled')).not.toHaveLength(0)
   })
 
-  it('links the settings icon to the project settings page', async () => {
+  it('opens the project panel on the Settings tab from the settings icon', async () => {
     const { default: ProjectPage } = await import('@/app/projects/[id]/page')
     renderWithTheme(<ProjectPage />)
 
     await screen.findByText('my-app')
-    expect(screen.getByLabelText('Project settings')).toHaveAttribute('href', '/projects/p1/settings')
+    fireEvent.click(screen.getByLabelText('Project settings'))
+
+    expect(await screen.findByRole('button', { name: 'Delete project' })).toBeInTheDocument()
   })
 
   it('shows a disabled badge when the project is disabled', async () => {

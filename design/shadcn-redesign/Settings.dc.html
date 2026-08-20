@@ -1,0 +1,158 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Space Grotesk', system-ui, sans-serif; }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+  a { color: inherit; text-decoration: none; }
+  input:focus { outline: none; }
+  .row { display: flex; align-items: center; }
+</style>
+</helmet>
+
+<div style="width:1000px;height:980px;overflow:hidden;position:relative;background:{{t.canvas}};color:{{t.ink}};">
+
+  <header class="row" style="height:56px;padding:0 20px;border-bottom:1px solid {{t.subtle}};gap:10px;">
+    <div style="width:11px;height:11px;border-radius:3px;background:{{t.accent}};transform:rotate(45deg);"></div>
+    <span class="mono" style="font-size:13px;font-weight:500;">mitto</span>
+    <span class="mono" style="font-size:13px;color:{{t.faint}};">/</span>
+    <span style="font-size:13px;font-weight:500;color:{{t.muted}};">api-gateway</span>
+    <span class="mono" style="font-size:13px;color:{{t.faint}};">/</span>
+    <span style="font-size:13px;font-weight:500;">Settings</span>
+  </header>
+
+  <main style="max-width:600px;margin:0 auto;padding:40px 24px 60px;">
+    <a href="#" class="mono row" style="gap:6px;margin-bottom:24px;font-size:13px;color:{{t.muted}};width:fit-content;">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Back to project
+    </a>
+
+    <div class="row" style="gap:16px;margin-bottom:32px;">
+      <div style="width:56px;height:56px;flex:none;border-radius:{{radius.xl}};display:flex;align-items:center;justify-content:center;background:#0FA893;">
+        <span class="mono" style="font-size:22px;font-weight:600;color:#fff;">A</span>
+      </div>
+      <div>
+        <h2 style="margin:0;font-size:22px;font-weight:600;letter-spacing:-0.01em;">api-gateway</h2>
+        <p class="mono" style="margin:4px 0 0;font-size:13.5px;color:{{t.muted}};">us-east-1 · created 4 days ago</p>
+      </div>
+    </div>
+
+    <div style="border-radius:{{radius.lg}};border:1px solid {{t.line}};background:{{t.surface}};padding:22px;margin-bottom:16px;">
+      <h3 style="margin:0 0 16px;font-size:14px;font-weight:600;">General</h3>
+      <label class="mono" style="display:block;margin-bottom:6px;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:{{t.muted}};">Name</label>
+      <input value="{{name}}" onChange="{{updateName}}" onFocus="{{focusName}}" onBlur="{{blurName}}"
+        style="width:100%;margin-bottom:4px;border-radius:{{radius.md}};border:1px solid {{nameBorderColor}};background:{{t.canvas}};color:{{t.ink}};padding:9px 12px;font-size:14px;box-shadow:{{nameRingShadow}};">
+      <p class="mono" style="margin:6px 0 0;font-size:12.5px;color:{{t.faint}};">slug → {{slug}}</p>
+    </div>
+
+    <div style="border-radius:{{radius.lg}};border:1px solid {{t.line}};background:{{t.surface}};padding:22px;margin-bottom:16px;">
+      <h3 style="margin:0 0 4px;font-size:14px;font-weight:600;">Domain</h3>
+      <p style="margin:0 0 16px;font-size:13.5px;color:{{t.sec}};">Where this project is reachable.</p>
+      <div class="row" style="justify-content:space-between;border-radius:{{radius.md}};border:1px solid {{t.line}};background:{{t.raised}};padding:10px 14px;margin-bottom:10px;">
+        <span class="mono" style="font-size:13.5px;color:{{t.ink2}};">{{slug}}.mitto.app</span>
+        <span class="mono" style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:{{t.muted}};">default</span>
+      </div>
+      <div class="row" style="justify-content:space-between;border-radius:{{radius.md}};border:1px dashed {{t.dashed}};padding:10px 14px;">
+        <span class="mono" style="font-size:13.5px;color:{{t.faint}};">Add a custom domain</span>
+        <span class="mono" style="border-radius:{{radius.sm}};padding:2px 7px;font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:0.06em;background:{{t.chip}};border:1px solid {{t.chipBorder}};color:{{t.muted}};">coming soon</span>
+      </div>
+    </div>
+
+    <div style="border-radius:{{radius.lg}};border:1px solid {{t.line}};background:{{t.surface}};padding:22px;margin-bottom:16px;">
+      <h3 style="margin:0 0 16px;font-size:14px;font-weight:600;">Visibility</h3>
+      <div class="row" style="justify-content:space-between;margin-bottom:18px;">
+        <div>
+          <p style="margin:0;font-size:13.5px;">Private</p>
+          <p class="mono" style="margin:2px 0 0;font-size:12.5px;color:{{t.faint}};">reserved for future team features</p>
+        </div>
+        <button role="switch" aria-checked="{{isPrivate}}" onClick="{{togglePrivate}}" style="box-sizing:border-box;display:inline-flex;flex:none;align-items:center;width:36px;height:20px;border-radius:999px;padding:2px;border:none;cursor:pointer;background:{{privateTrackColor}};">
+          <span style="display:block;width:16px;height:16px;border-radius:999px;background:#fff;transform:{{privateThumbTransform}};transition:transform .15s ease;"></span>
+        </button>
+      </div>
+      <div class="row" style="justify-content:space-between;">
+        <div>
+          <p style="margin:0;font-size:13.5px;">Enabled</p>
+          <p class="mono" style="margin:2px 0 0;font-size:12.5px;color:{{t.faint}};">new deployments are blocked while disabled</p>
+        </div>
+        <button role="switch" aria-checked="{{enabled}}" onClick="{{toggleEnabled}}" style="box-sizing:border-box;display:inline-flex;flex:none;align-items:center;width:36px;height:20px;border-radius:999px;padding:2px;border:none;cursor:pointer;background:{{enabledTrackColor}};">
+          <span style="display:block;width:16px;height:16px;border-radius:999px;background:#fff;transform:{{enabledThumbTransform}};transition:transform .15s ease;"></span>
+        </button>
+      </div>
+    </div>
+
+    <button style="border:none;border-radius:{{radius.md}};padding:10px 20px;font-size:13.5px;font-weight:600;background:{{t.accent}};color:{{t.accentInk}};cursor:pointer;">Save changes</button>
+
+    <div style="margin-top:36px;border-radius:{{radius.lg}};border:1px solid {{t.dangerBorder}};padding:22px;">
+      <h3 style="margin:0 0 4px;font-size:14px;font-weight:600;">Danger zone</h3>
+      <p style="margin:0 0 16px;font-size:13px;color:{{t.sec}};">Deleting a project also deletes all of its services and deployment history.</p>
+      <button onClick="{{openDelete}}" class="row" style="gap:6px;border-radius:{{radius.md}};border:1px solid {{t.dangerBorder}};background:transparent;color:{{t.danger}};padding:8px 16px;font-size:13.5px;font-weight:500;cursor:pointer;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0-1 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 6"/><path d="M10 11v6M14 11v6"/></svg>
+        Delete project
+      </button>
+    </div>
+  </main>
+
+  <sc-if value="{{showDelete}}" hint-placeholder-val="{{false}}">
+    <div onClick="{{closeDelete}}" style="position:fixed;inset:0;z-index:50;background:{{t.overlay}};backdrop-filter:blur(4px);"></div>
+    <div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:51;width:400px;border-radius:{{radius.xl}};border:1px solid {{t.dangerBorder}};background:{{t.surface}};box-shadow:{{t.shadowPop}};padding:24px;">
+      <h2 style="margin:0 0 8px;font-size:15px;font-weight:600;">Delete api-gateway?</h2>
+      <p style="margin:0 0 20px;font-size:13px;line-height:1.5;color:{{t.sec}};">This deletes the project, all 3 services and their deployment history. This cannot be undone.</p>
+      <div class="row" style="justify-content:flex-end;gap:10px;">
+        <button onClick="{{closeDelete}}" style="border:none;background:transparent;color:{{t.sec}};font-size:14px;font-weight:500;padding:9px 14px;border-radius:{{radius.md}};cursor:pointer;">Cancel</button>
+        <button onClick="{{closeDelete}}" style="border:none;background:{{t.danger}};color:#fff;font-size:14px;font-weight:600;padding:9px 18px;border-radius:{{radius.md}};cursor:pointer;">Delete project</button>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+
+</x-dc>
+<script data-dc-script data-props='{"theme":{"editor":"enum","default":"bone","options":["bone","graphite"],"section":"Theme"}}'>
+const TOKENS = {
+  bone: { canvas:'#F4F2ED', surface:'#FBFAF7', raised:'#F1EFE9', chip:'#ECE9E2', chipBorder:'#D3CEC2', border:'#D8D3C8', subtle:'#E7E3DA', line:'#E2DED4', dashed:'#CFCABE', ink:'#1E2126', ink2:'#3A3F47', sec:'#5C6470', muted:'#8B9099', faint:'#A7A399', accent:'#0FA893', accentInk:'#FFFFFF', ring:'rgba(15,168,147,0.22)', danger:'#DE3B30', dangerBorder:'rgba(222,59,48,0.35)', overlay:'rgba(45,41,33,0.42)', shadowPop:'0 12px 32px rgba(46,42,32,0.16)' },
+  graphite: { canvas:'#262624', surface:'#30302E', raised:'#383735', chip:'#3A3937', chipBorder:'#4A4845', border:'#45433F', subtle:'#3A3835', line:'#403E3A', dashed:'#514E48', ink:'#ECEAE4', ink2:'#D6D3CC', sec:'#A8A49C', muted:'#87847C', faint:'#5C594F', accent:'#3DD6C4', accentInk:'#0A2622', ring:'rgba(61,214,196,0.28)', danger:'#FF6459', dangerBorder:'rgba(255,100,89,0.35)', overlay:'rgba(15,14,12,0.65)', shadowPop:'0 12px 32px rgba(0,0,0,0.4)' },
+};
+const RADIUS = { sm:'6px', md:'8px', lg:'10px', xl:'14px' };
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { theme: props.theme || 'bone', name: 'api-gateway', nameFocused: false, isPrivate: true, enabled: true, showDelete: false };
+  }
+  renderVals() {
+    const mode = this.state.theme === 'graphite' ? 'graphite' : 'bone';
+    const t = TOKENS[mode];
+    const s = this.state;
+    return {
+      t, radius: RADIUS,
+      name: s.name, nameFocused: s.nameFocused,
+      nameBorderColor: s.nameFocused ? t.accent : t.border,
+      nameRingShadow: s.nameFocused ? `0 0 0 3px ${t.ring}` : 'none',
+      updateName: (e) => this.setState({ name: e.target.value }),
+      focusName: () => this.setState({ nameFocused: true }),
+      blurName: () => this.setState({ nameFocused: false }),
+      slug: s.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || '—',
+      isPrivate: s.isPrivate, enabled: s.enabled,
+      privateTrackColor: s.isPrivate ? t.accent : t.border,
+      privateThumbTransform: s.isPrivate ? 'translateX(16px)' : 'translateX(0)',
+      enabledTrackColor: s.enabled ? t.accent : t.border,
+      enabledThumbTransform: s.enabled ? 'translateX(16px)' : 'translateX(0)',
+      togglePrivate: () => this.setState({ isPrivate: !s.isPrivate }),
+      toggleEnabled: () => this.setState({ enabled: !s.enabled }),
+      showDelete: s.showDelete,
+      openDelete: () => this.setState({ showDelete: true }),
+      closeDelete: () => this.setState({ showDelete: false }),
+    };
+  }
+}
+</script>
+</body>
+</html>

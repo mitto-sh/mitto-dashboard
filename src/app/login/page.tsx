@@ -23,7 +23,7 @@ function LoginError() {
   return (
     <p
       role="alert"
-      className="flex items-center gap-[10px] rounded-lg border px-4 py-[10px] text-[13px]"
+      className="flex items-center gap-[10px] rounded-lg border px-4 py-[10px] text-caption"
       style={{ borderColor: theme.dangerBorder, backgroundColor: theme.dangerBg, color: theme.danger }}
     >
       <span className="h-[6px] w-[6px] flex-none rounded-full" style={{ backgroundColor: theme.danger }} />
@@ -72,7 +72,7 @@ export default function LoginPage() {
         Sign in with GitHub
       </a>
 
-      <p className="absolute bottom-7 font-mono text-[11px]" style={{ color: theme.faint }}>
+      <p className="absolute bottom-7 font-mono text-label" style={{ color: theme.faint }}>
         open source · self-hostable
       </p>
     </main>

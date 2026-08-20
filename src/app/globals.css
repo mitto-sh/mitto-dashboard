@@ -1,8 +1,38 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@config "../../tailwind.config.ts";
 
-html,
-body {
-  background-color: #f4f2ed;
+@layer base {
+  :root {
+    --background: #f4f2ed;
+    --foreground: #1e2126;
+    --card: #fbfaf7;
+    --card-foreground: #1e2126;
+    --popover: #f1efe9;
+    --popover-foreground: #1e2126;
+    --primary: #0fa893;
+    --primary-foreground: #ffffff;
+    --secondary: #ece9e2;
+    --secondary-foreground: #3a3f47;
+    --muted: #ece9e2;
+    --muted-foreground: #8b9099;
+    --accent: #f1efe9;
+    --accent-foreground: #1e2126;
+    --destructive: #de3b30;
+    --destructive-foreground: #ffffff;
+    --border: #d8d3c8;
+    --input: #d8d3c8;
+    --ring: #0fa893;
+    --radius: 10px;
+  }
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
 }

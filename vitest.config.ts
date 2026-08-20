@@ -20,6 +20,9 @@ export default defineConfig({
       include: ['src/**/*.{ts,tsx}'],
       exclude: [
         'src/app/layout.tsx',
+        // shadcn/ui-generated primitives — vendored, exercised indirectly
+        // through the components that use them, not unit-tested directly.
+        'src/components/ui/**',
       ],
       thresholds: {
         lines: 85,

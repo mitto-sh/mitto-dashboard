@@ -39,7 +39,7 @@ export function DisableServiceDialog({ serviceName, onCancel, onConfirm }: Disab
             <h2 className="mb-2 text-[16px] font-semibold" style={{ color: theme.ink }}>
               {dict.confirmDisablePrefix} &ldquo;{serviceName}&rdquo;?
             </h2>
-            <p className="text-[14px] leading-[1.55]" style={{ color: theme.sec }}>
+            <p className="text-body-sm leading-[1.55]" style={{ color: theme.sec }}>
               {dict.confirmDisableWarning}
             </p>
           </div>
@@ -48,7 +48,7 @@ export function DisableServiceDialog({ serviceName, onCancel, onConfirm }: Disab
           <button
             onClick={onCancel}
             disabled={disabling}
-            className="rounded-lg px-4 py-[10px] text-[13.5px] font-medium transition-colors disabled:opacity-50"
+            className="rounded-lg px-4 py-[10px] text-body-sm font-medium transition-colors disabled:opacity-50"
             style={{ color: theme.sec }}
           >
             {dict.keepRunning}
@@ -56,7 +56,7 @@ export function DisableServiceDialog({ serviceName, onCancel, onConfirm }: Disab
           <button
             onClick={handleConfirm}
             disabled={disabling}
-            className="rounded-lg px-[18px] py-[10px] text-[13.5px] font-semibold transition-colors disabled:opacity-50"
+            className="rounded-lg px-[18px] py-[10px] text-body-sm font-semibold transition-colors disabled:opacity-50"
             style={{ backgroundColor: theme.danger, color: theme.accentInk }}
           >
             {dict.disableService}

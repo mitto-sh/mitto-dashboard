@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
-import { screen, fireEvent } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { ProjectCard } from '@/components/ProjectCard'
 import { renderWithTheme } from '../helpers/renderWithTheme'
 import type { Project, Service } from '@/lib/types'
@@ -16,59 +17,76 @@ const project: Project = {
   isPrivate: true, enabled: true, createdAt: new Date().toISOString(), services,
 }
 
+function renderCard(overrides: Partial<Parameters<typeof ProjectCard>[0]> = {}) {
+  const onRequestDelete = vi.fn()
+  const onRequestSettings = vi.fn()
+  renderWithTheme(
+    <ProjectCard project={project} onRequestDelete={onRequestDelete} onRequestSettings={onRequestSettings} {...overrides} />,
+  )
+  return { onRequestDelete, onRequestSettings }
+}
+
 describe('ProjectCard', () => {
   it('links to the project canvas', () => {
-    renderWithTheme(<ProjectCard project={project} onRequestDelete={vi.fn()} />)
+    renderCard()
     expect(screen.getAllByRole('link')[0]).toHaveAttribute('href', '/projects/p1')
   })
 
   it('shows the identity avatar with the first letter of the name', () => {
-    renderWithTheme(<ProjectCard project={project} onRequestDelete={vi.fn()} />)
+    renderCard()
     expect(screen.getByText('A')).toBeInTheDocument()
   })
 
   it('shows region and service count in the footer', () => {
-    renderWithTheme(<ProjectCard project={project} onRequestDelete={vi.fn()} />)
+    renderCard()
     expect(screen.getByText('us-east-1')).toBeInTheDocument()
     expect(screen.getByText('1 service')).toBeInTheDocument()
   })
 
   it('omits the disabled badge when enabled', () => {
-    renderWithTheme(<ProjectCard project={project} onRequestDelete={vi.fn()} />)
+    renderCard()
     expect(screen.queryByText('disabled')).not.toBeInTheDocument()
   })
 
   it('shows the disabled badge when disabled', () => {
-    renderWithTheme(<ProjectCard project={{ ...project, enabled: false }} onRequestDelete={vi.fn()} />)
+    renderCard({ project: { ...project, enabled: false } })
     expect(screen.getByText('disabled')).toBeInTheDocument()
   })
 
-  it('opens a menu with Settings and Delete', () => {
-    renderWithTheme(<ProjectCard project={project} onRequestDelete={vi.fn()} />)
+  it('opens a menu with Settings and Delete', async () => {
+    renderCard()
 
-    fireEvent.click(screen.getByLabelText('Project actions'))
+    await userEvent.click(screen.getByLabelText('Project actions'))
 
-    expect(screen.getByText('Settings').closest('a')).toHaveAttribute('href', '/projects/p1/settings')
+    expect(await screen.findByText('Settings')).toBeInTheDocument()
     expect(screen.getByText('Delete')).toBeInTheDocument()
   })
 
-  it('calls onRequestDelete with the project when Delete is clicked', () => {
-    const onRequestDelete = vi.fn()
-    renderWithTheme(<ProjectCard project={project} onRequestDelete={onRequestDelete} />)
+  it('calls onRequestSettings with the project when Settings is clicked, without navigating away', async () => {
+    const { onRequestSettings } = renderCard()
 
-    fireEvent.click(screen.getByLabelText('Project actions'))
-    fireEvent.click(screen.getByText('Delete'))
+    await userEvent.click(screen.getByLabelText('Project actions'))
+    await userEvent.click(await screen.findByText('Settings'))
+
+    expect(onRequestSettings).toHaveBeenCalledWith(project)
+  })
+
+  it('calls onRequestDelete with the project when Delete is clicked', async () => {
+    const { onRequestDelete } = renderCard()
+
+    await userEvent.click(screen.getByLabelText('Project actions'))
+    await userEvent.click(await screen.findByText('Delete'))
 
     expect(onRequestDelete).toHaveBeenCalledWith(project)
   })
 
-  it('closes the menu when clicking the backdrop', () => {
-    renderWithTheme(<ProjectCard project={project} onRequestDelete={vi.fn()} />)
+  it('closes the menu on Escape', async () => {
+    renderCard()
 
-    fireEvent.click(screen.getByLabelText('Project actions'))
-    expect(screen.getByText('Delete')).toBeInTheDocument()
+    await userEvent.click(screen.getByLabelText('Project actions'))
+    expect(await screen.findByText('Delete')).toBeInTheDocument()
 
-    fireEvent.click(screen.getByLabelText('Close menu'))
-    expect(screen.queryByText('Delete')).not.toBeInTheDocument()
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByText('Delete')).not.toBeInTheDocument())
   })
 })

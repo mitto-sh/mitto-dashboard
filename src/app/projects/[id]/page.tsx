@@ -1,15 +1,15 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
-import Link from 'next/link'
+import { useParams, useRouter } from 'next/navigation'
 import { AuthGuard } from '@/components/AuthGuard'
+import { AppHeader } from '@/components/AppHeader'
 import { Canvas } from '@/components/Canvas'
 import { AddServiceModal } from '@/components/AddServiceModal'
 import { AddServiceChooserModal } from '@/components/AddServiceChooserModal'
 import { ImportFromGithubModal } from '@/components/ImportFromGithubModal'
 import { ServiceDetailPanel } from '@/components/ServiceDetailPanel'
-import { Logo } from '@/components/Logo'
+import { ProjectDetailPanel } from '@/components/ProjectDetailPanel'
 import { PlusIcon, SettingsIcon } from '@/components/icons'
 import { useThemeContext } from '@/components/ThemeProvider'
 import { api } from '@/lib/api'
@@ -17,11 +17,17 @@ import type { Project, Service, Deployment } from '@/lib/types'
 
 type AddServiceStep = 'closed' | 'choose' | 'manual' | 'github'
 
+type PanelState =
+  | { kind: 'none' }
+  | { kind: 'service'; service: Service }
+  | { kind: 'project'; tab: 'overview' | 'settings' }
+
 function ProjectCanvasView({ projectId }: { projectId: string }) {
   const { theme, dict } = useThemeContext()
+  const router = useRouter()
   const [project, setProject] = useState<Project | null>(null)
   const [latestDeployments, setLatestDeployments] = useState<Record<string, Deployment | undefined>>({})
-  const [selectedService, setSelectedService] = useState<Service | null>(null)
+  const [panel, setPanel] = useState<PanelState>({ kind: 'none' })
   const [addServiceStep, setAddServiceStep] = useState<AddServiceStep>('closed')
 
   useEffect(() => {
@@ -57,7 +63,7 @@ function ProjectCanvasView({ projectId }: { projectId: string }) {
     setProject((prev) =>
       prev ? { ...prev, services: (prev.services ?? []).map((s) => (s.id === updated.id ? updated : s)) } : prev,
     )
-    setSelectedService(updated)
+    setPanel((prev) => (prev.kind === 'service' ? { kind: 'service', service: updated } : prev))
   }
 
   function handleDeploymentTriggered(deployment: Deployment) {
@@ -70,52 +76,55 @@ function ProjectCanvasView({ projectId }: { projectId: string }) {
 
   return (
     <div>
-      <header
-        className="relative z-20 flex h-14 items-center justify-between border-b px-5"
-        style={{ borderColor: theme.subtle, backgroundColor: theme.headerBg }}
-      >
-        <div className="flex items-center gap-[10px]">
-          <Link href="/projects" className="flex items-center gap-[10px] transition-colors" style={{ color: theme.muted }}>
-            <Logo size={11} />
-            <span className="font-mono text-[13px] font-medium" style={{ color: theme.ink }}>mitto</span>
-          </Link>
-          <span className="font-mono text-[13px]" style={{ color: theme.faint }}>/</span>
-          <h1 className="text-[13px] font-medium" style={{ color: theme.ink }}>{project.slug}</h1>
-          {!project.enabled && (
-            <span
-              className="rounded-[5px] border px-[7px] py-[2px] font-mono text-[10px] font-medium uppercase tracking-[0.08em]"
-              style={{ color: theme.danger, borderColor: theme.dangerBorder, backgroundColor: theme.dangerBg }}
+      <AppHeader
+        breadcrumb={
+          <>
+            <span className="font-mono text-caption" style={{ color: theme.faint }}>/</span>
+            <button
+              onClick={() => setPanel({ kind: 'project', tab: 'overview' })}
+              className="text-caption font-medium transition-colors"
+              style={{ color: theme.ink }}
             >
-              disabled
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          <Link
-            href={`/projects/${projectId}/settings`}
-            aria-label="Project settings"
-            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border transition-colors"
-            style={{ borderColor: theme.border, color: theme.sec }}
-          >
-            <SettingsIcon size={14} />
-          </Link>
-          <button
-            onClick={() => setAddServiceStep('choose')}
-            className="inline-flex items-center gap-[6px] rounded-lg px-[14px] py-[7px] text-[12.5px] font-semibold transition-colors"
-            style={{ backgroundColor: theme.accent, color: theme.accentInk }}
-          >
-            <PlusIcon size={13} />
-            {dict.addService}
-          </button>
-        </div>
-      </header>
+              {project.slug}
+            </button>
+            {!project.enabled && (
+              <span
+                className="rounded-[5px] border px-[7px] py-[2px] font-mono text-label font-medium uppercase tracking-[0.08em]"
+                style={{ color: theme.danger, borderColor: theme.dangerBorder, backgroundColor: theme.dangerBg }}
+              >
+                disabled
+              </span>
+            )}
+          </>
+        }
+        actions={
+          <>
+            <button
+              onClick={() => setPanel({ kind: 'project', tab: 'settings' })}
+              aria-label="Project settings"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border transition-colors"
+              style={{ borderColor: theme.border, color: theme.sec }}
+            >
+              <SettingsIcon size={14} />
+            </button>
+            <button
+              onClick={() => setAddServiceStep('choose')}
+              className="inline-flex items-center gap-[6px] rounded-lg px-[14px] py-[7px] text-body-sm font-semibold transition-colors"
+              style={{ backgroundColor: theme.accent, color: theme.accentInk }}
+            >
+              <PlusIcon size={13} />
+              {dict.addService}
+            </button>
+          </>
+        }
+      />
 
       <Canvas
         projectId={projectId}
         services={project.services ?? []}
         latestDeployments={latestDeployments}
-        selectedServiceId={selectedService?.id ?? null}
-        onSelectService={setSelectedService}
+        selectedServiceId={panel.kind === 'service' ? panel.service.id : null}
+        onSelectService={(service) => setPanel({ kind: 'service', service })}
         onAddService={() => setAddServiceStep('choose')}
       />
 
@@ -143,12 +152,24 @@ function ProjectCanvasView({ projectId }: { projectId: string }) {
         />
       )}
 
-      {selectedService && (
+      {panel.kind === 'service' && (
         <ServiceDetailPanel
-          service={selectedService}
-          onClose={() => setSelectedService(null)}
+          service={panel.service}
+          onClose={() => setPanel({ kind: 'none' })}
           onServiceUpdated={handleServiceUpdated}
           onDeploymentTriggered={handleDeploymentTriggered}
+        />
+      )}
+
+      {panel.kind === 'project' && (
+        <ProjectDetailPanel
+          project={project}
+          open
+          tab={panel.tab}
+          onTabChange={(tab) => setPanel({ kind: 'project', tab })}
+          onClose={() => setPanel({ kind: 'none' })}
+          onProjectUpdated={setProject}
+          onDeleted={() => router.push('/projects')}
         />
       )}
     </div>

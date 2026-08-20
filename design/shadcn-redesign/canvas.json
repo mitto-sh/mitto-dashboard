@@ -1,0 +1,16 @@
+{
+  "artboards": [
+    { "file": "Login.dc.html", "x": 0, "y": 0, "w": 1280, "h": 800, "page": "flows" },
+    { "file": "Main.dc.html", "x": 1360, "y": 0, "w": 1280, "h": 900, "page": "flows" },
+    { "file": "Canvas.dc.html", "x": 2720, "y": 0, "w": 1440, "h": 840, "page": "flows" },
+    { "file": "Components.dc.html", "x": 0, "y": 0, "w": 1200, "h": 2320, "page": "components" }
+  ],
+  "annotations": [
+    { "id": "note-flows", "x": 0, "y": -90, "w": 560, "text": "mitto dashboard — shadcn/ui redesign\nBone (light) theme by default, Graphite (dark) via the header toggle. On the Canvas artboard, click a service card OR the project name (‘api-gateway ⋯’) — both open the same right-side panel with Overview/Settings tabs, so project and service configuration finally share one pattern.", "page": "flows" }
+  ],
+  "pages": [
+    { "id": "flows", "name": "Flows" },
+    { "id": "components", "name": "Components" }
+  ],
+  "launch": { "view": "canvas", "page": "flows" }
+}

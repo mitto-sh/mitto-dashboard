@@ -113,6 +113,10 @@ export function AlertTriangleIcon(props: IconProps) {
   )
 }
 
+export function CheckIcon(props: IconProps) {
+  return <Icon {...props} d="M20 6 9 17l-5-5" />
+}
+
 export function LockIcon(props: IconProps) {
   return (
     <Icon

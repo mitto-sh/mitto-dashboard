@@ -149,3 +149,35 @@ export function hexWithAlpha(hex: string, alpha: number): string {
     .padStart(2, '0')
   return `${hex}${a}`
 }
+
+/**
+ * Bridges this app's own Bone/Graphite `Theme` objects to the CSS custom
+ * properties shadcn/ui's components read (`bg-primary`, `text-foreground`,
+ * etc.), so both styling mechanisms show the same colors for the same mode.
+ * `--accent`/`--accent-foreground` intentionally map to a neutral hover
+ * background (shadcn's own meaning for that token — menu/list item hover),
+ * not the brand teal `theme.accent`.
+ */
+export function cssVarsFor(theme: Theme): Record<string, string> {
+  return {
+    '--background': theme.canvas,
+    '--foreground': theme.ink,
+    '--card': theme.surface,
+    '--card-foreground': theme.ink,
+    '--popover': theme.raised,
+    '--popover-foreground': theme.ink,
+    '--primary': theme.accent,
+    '--primary-foreground': theme.accentInk,
+    '--secondary': theme.chip,
+    '--secondary-foreground': theme.ink2,
+    '--muted': theme.chip,
+    '--muted-foreground': theme.muted,
+    '--accent': theme.raised,
+    '--accent-foreground': theme.ink,
+    '--destructive': theme.danger,
+    '--destructive-foreground': theme.accentInk,
+    '--border': theme.border,
+    '--input': theme.border,
+    '--ring': theme.accent,
+  }
+}

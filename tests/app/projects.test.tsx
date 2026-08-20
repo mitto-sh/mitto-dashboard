@@ -1,13 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen, fireEvent, waitFor } from '@testing-library/react'
+import { screen, fireEvent, waitFor, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { renderWithTheme } from '../helpers/renderWithTheme'
 import { setToken } from '@/lib/auth'
 import type { Project } from '@/lib/types'
 
 let searchParams = new URLSearchParams()
 const routerReplace = vi.fn()
+const routerPush = vi.fn()
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ replace: routerReplace }),
+  useRouter: () => ({ replace: routerReplace, push: routerPush }),
   useSearchParams: () => searchParams,
 }))
 
@@ -15,6 +17,7 @@ vi.mock('@/lib/api', () => ({
   api: {
     listProjects: vi.fn(),
     createProject: vi.fn(),
+    updateProject: vi.fn(),
     deleteProject: vi.fn(),
   },
 }))
@@ -33,6 +36,7 @@ describe('ProjectsPage', () => {
     setToken('a-token')
     searchParams = new URLSearchParams()
     routerReplace.mockClear()
+    routerPush.mockClear()
     vi.mocked(api.listProjects).mockResolvedValue([])
   })
 
@@ -133,8 +137,8 @@ describe('ProjectsPage', () => {
     renderWithTheme(<ProjectsPage />)
 
     await screen.findByText('My App')
-    fireEvent.click(screen.getByLabelText('Project actions'))
-    fireEvent.click(screen.getByText('Delete'))
+    await userEvent.click(screen.getByLabelText('Project actions'))
+    await userEvent.click(await screen.findByText('Delete'))
     fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
 
     await waitFor(() => {
@@ -143,14 +147,60 @@ describe('ProjectsPage', () => {
     })
   })
 
-  it('links to the project settings page from the card menu', async () => {
+  it('opens the settings panel inline from the card menu, without navigating away', async () => {
     vi.mocked(api.listProjects).mockResolvedValue([project])
     const { default: ProjectsPage } = await import('@/app/projects/page')
     renderWithTheme(<ProjectsPage />)
 
     await screen.findByText('My App')
-    fireEvent.click(screen.getByLabelText('Project actions'))
+    await userEvent.click(screen.getByLabelText('Project actions'))
+    await userEvent.click(await screen.findByText('Settings'))
 
-    expect(screen.getByText('Settings').closest('a')).toHaveAttribute('href', '/projects/p1/settings')
+    expect(await screen.findByRole('button', { name: 'Delete project' })).toBeInTheDocument()
+    expect(await screen.findByText('Projects')).toBeInTheDocument()
+    expect(routerPush).not.toHaveBeenCalled()
+  })
+
+  it('saves a rename from the inline settings panel and reflects it on the card', async () => {
+    vi.mocked(api.listProjects).mockResolvedValue([project])
+    vi.mocked(api.updateProject).mockResolvedValue({ ...project, name: 'Renamed App' })
+    const { default: ProjectsPage } = await import('@/app/projects/page')
+    renderWithTheme(<ProjectsPage />)
+
+    await screen.findByText('My App')
+    await userEvent.click(screen.getByLabelText('Project actions'))
+    await userEvent.click(await screen.findByText('Settings'))
+
+    fireEvent.change(await screen.findByLabelText('Name'), { target: { value: 'Renamed App' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+
+    await waitFor(() => {
+      expect(api.updateProject).toHaveBeenCalledWith('p1', { name: 'Renamed App', isPrivate: true, enabled: true })
+    })
+    expect(await screen.findAllByText('Renamed App')).not.toHaveLength(0)
+  })
+
+  it('opens the command palette from the header trigger and navigates on select', async () => {
+    vi.mocked(api.listProjects).mockResolvedValue([project])
+    const { default: ProjectsPage } = await import('@/app/projects/page')
+    renderWithTheme(<ProjectsPage />)
+
+    await screen.findByText('My App')
+    fireEvent.click(screen.getByText('Jump to…'))
+
+    const dialog = await screen.findByRole('dialog')
+    await userEvent.click(await within(dialog).findByText('My App'))
+    expect(routerPush).toHaveBeenCalledWith('/projects/p1')
+  })
+
+  it('opens the command palette with the ⌘K shortcut', async () => {
+    vi.mocked(api.listProjects).mockResolvedValue([project])
+    const { default: ProjectsPage } = await import('@/app/projects/page')
+    renderWithTheme(<ProjectsPage />)
+
+    await screen.findByText('My App')
+    fireEvent.keyDown(window, { key: 'k', metaKey: true })
+
+    expect(await screen.findByPlaceholderText('Jump to a project…')).toBeInTheDocument()
   })
 })
