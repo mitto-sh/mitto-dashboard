@@ -7,7 +7,7 @@ import { isAuthenticated } from '@/lib/auth'
 import { SunIcon, MoonIcon } from './icons'
 
 export function ThemeLangToggle() {
-  const { theme, mode, toggleTheme, lang, toggleLang } = useThemeContext()
+  const { mode, toggleTheme, lang, toggleLang } = useThemeContext()
   const pathname = usePathname()
   const [authed, setAuthed] = useState(false)
 
@@ -23,16 +23,14 @@ export function ThemeLangToggle() {
       <button
         onClick={toggleTheme}
         aria-label="Toggle theme"
-        className="inline-flex h-7 w-7 items-center justify-center rounded-lg border transition-colors"
-        style={{ backgroundColor: theme.surface, borderColor: theme.border, color: theme.sec }}
+        className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-border bg-surface text-ink-secondary transition-colors"
       >
         {mode === 'graphite' ? <SunIcon size={13} /> : <MoonIcon size={13} />}
       </button>
       <button
         onClick={toggleLang}
         aria-label="Toggle language"
-        className="inline-flex h-7 items-center justify-center rounded-lg border px-[10px] font-mono text-label transition-colors"
-        style={{ backgroundColor: theme.surface, borderColor: theme.border, color: theme.sec }}
+        className="inline-flex h-7 items-center justify-center rounded-lg border border-border bg-surface px-[10px] font-mono text-label text-ink-secondary transition-colors"
       >
         {lang === 'es' ? 'EN' : 'ES'}
       </button>

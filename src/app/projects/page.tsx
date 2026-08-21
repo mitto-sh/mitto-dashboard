@@ -5,12 +5,11 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { AuthGuard } from '@/components/AuthGuard'
 import { AppHeader } from '@/components/AppHeader'
 import { SearchIcon, PlusIcon } from '@/components/icons'
-import { CreateProjectModal } from '@/components/CreateProjectModal'
+import { CreateProjectModal } from './components/CreateProjectModal'
 import { DeleteProjectDialog } from '@/components/DeleteProjectDialog'
-import { ProjectCard } from '@/components/ProjectCard'
+import { ProjectCard } from './components/ProjectCard'
 import { ProjectDetailPanel } from '@/components/ProjectDetailPanel'
 import type { EntityPanelTab } from '@/components/EntityPanel'
-import { useThemeContext } from '@/components/ThemeProvider'
 import { api } from '@/lib/api'
 import type { Project, Environment } from '@/lib/types'
 
@@ -20,7 +19,6 @@ const GITHUB_ERROR_MESSAGES: Record<string, string> = {
 }
 
 function GithubStatusBanner() {
-  const { theme } = useThemeContext()
   const router = useRouter()
   const searchParams = useSearchParams()
   const connected = searchParams.get('github_connected')
@@ -35,14 +33,14 @@ function GithubStatusBanner() {
 
   if (connected) {
     return (
-      <p className="mb-6 rounded-lg border px-4 py-[10px] text-caption" style={{ borderColor: theme.line, backgroundColor: theme.raised, color: theme.sec }}>
+      <p className="mb-6 rounded-lg border border-line bg-raised px-4 py-[10px] text-caption text-ink-secondary">
         GitHub connected. You can now import repositories.
       </p>
     )
   }
   if (errorCode) {
     return (
-      <p className="mb-6 rounded-lg border px-4 py-[10px] text-caption" style={{ borderColor: theme.dangerBorder, backgroundColor: theme.dangerBg, color: theme.danger }}>
+      <p className="mb-6 rounded-lg border border-danger-border bg-danger-bg px-4 py-[10px] text-caption text-danger">
         {GITHUB_ERROR_MESSAGES[errorCode] ?? 'Something went wrong connecting GitHub.'}
       </p>
     )
@@ -51,7 +49,6 @@ function GithubStatusBanner() {
 }
 
 function ProjectsList() {
-  const { theme } = useThemeContext()
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState('')
@@ -116,8 +113,7 @@ function ProjectsList() {
           <>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="inline-flex h-8 items-center gap-[6px] rounded-lg px-[14px] text-body-sm font-semibold transition-colors"
-              style={{ backgroundColor: theme.accent, color: theme.accentInk }}
+              className="inline-flex h-8 items-center gap-[6px] rounded-lg bg-primary px-[14px] text-body-sm font-semibold text-primary-foreground transition-colors"
             >
               <PlusIcon size={13} />
               New project
@@ -128,8 +124,8 @@ function ProjectsList() {
 
       <main className="mx-auto max-w-[1040px] px-6 py-12">
         <div className="mb-6 flex items-baseline gap-3">
-          <h1 className="text-xl font-semibold tracking-tight" style={{ color: theme.ink }}>Projects</h1>
-          <span className="font-mono text-xs" style={{ color: theme.muted }}>
+          <h1 className="text-xl font-semibold tracking-tight text-ink">Projects</h1>
+          <span className="font-mono text-xs text-ink-muted">
             {loading ? '' : String(projects.length).padStart(2, '0')}
           </span>
         </div>
@@ -142,29 +138,27 @@ function ProjectsList() {
           <div className="relative flex-1">
             <SearchIcon
               size={14}
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2"
-              style={{ color: theme.muted }}
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted"
             />
             <input
               aria-label="Search projects"
               placeholder="Search projects…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="w-full rounded-lg border py-[10px] pl-9 pr-3 text-sm outline-none transition-colors"
-              style={{ borderColor: theme.border, backgroundColor: theme.surface, color: theme.ink }}
+              className="w-full rounded-lg border border-border bg-surface py-[10px] pl-9 pr-3 text-sm text-ink outline-none transition-colors"
             />
           </div>
         </div>
 
         {loading ? (
-          <p className="font-mono text-sm" style={{ color: theme.muted }}>Loading…</p>
+          <p className="font-mono text-sm text-ink-muted">Loading…</p>
         ) : projects.length === 0 ? (
-          <div className="rounded-xl border border-dashed p-[48px_24px] text-center" style={{ borderColor: theme.border }}>
-            <p className="text-sm" style={{ color: theme.sec }}>No projects yet</p>
-            <p className="mt-2 font-mono text-xs" style={{ color: theme.muted }}>create one above to get started</p>
+          <div className="rounded-xl border border-dashed border-border p-[48px_24px] text-center">
+            <p className="text-sm text-ink-secondary">No projects yet</p>
+            <p className="mt-2 font-mono text-xs text-ink-muted">create one above to get started</p>
           </div>
         ) : filtered.length === 0 ? (
-          <p className="font-mono text-sm" style={{ color: theme.muted }}>No projects match "{query}"</p>
+          <p className="font-mono text-sm text-ink-muted">No projects match "{query}"</p>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map((p) => (

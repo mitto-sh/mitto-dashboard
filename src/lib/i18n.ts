@@ -1,3 +1,9 @@
+// Hand-rolled on purpose, not next-intl/react-i18next: at ~50 keys and 2
+// languages, a library buys pluralization/interpolation we don't use yet,
+// while still requiring a per-component hook call to react to language
+// switches (same shape as useThemeContext() below) — so it wouldn't remove
+// the thing that's actually tedious. Revisit if the dict grows a lot, needs
+// interpolation/pluralization, or gains a 3rd language.
 export type Lang = 'en' | 'es'
 
 export interface Dictionary {

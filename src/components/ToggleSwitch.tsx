@@ -1,7 +1,3 @@
-'use client'
-
-import { useThemeContext } from './ThemeProvider'
-
 interface ToggleSwitchProps {
   checked: boolean
   onChange: () => void
@@ -10,8 +6,6 @@ interface ToggleSwitchProps {
 }
 
 export function ToggleSwitch({ checked, onChange, label, disabled }: ToggleSwitchProps) {
-  const { theme } = useThemeContext()
-
   return (
     <button
       type="button"
@@ -20,8 +14,7 @@ export function ToggleSwitch({ checked, onChange, label, disabled }: ToggleSwitc
       aria-label={label}
       onClick={onChange}
       disabled={disabled}
-      className="box-border inline-flex h-5 w-9 flex-none items-center rounded-full p-[2px] transition-colors disabled:opacity-50"
-      style={{ backgroundColor: checked ? theme.accent : theme.border }}
+      className={`box-border inline-flex h-5 w-9 flex-none items-center rounded-full p-[2px] transition-colors disabled:opacity-50 ${checked ? 'bg-primary' : 'bg-border'}`}
     >
       <span
         className="block h-4 w-4 rounded-full bg-white transition-transform"

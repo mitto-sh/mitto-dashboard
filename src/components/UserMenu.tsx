@@ -11,7 +11,7 @@ import { identityColor, initialFor } from '@/lib/identity'
 import type { User } from '@/lib/types'
 
 export function UserMenu() {
-  const { theme, mode, toggleTheme, lang, toggleLang } = useThemeContext()
+  const { mode, toggleTheme, lang, toggleLang } = useThemeContext()
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
 
@@ -30,8 +30,7 @@ export function UserMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label="User menu"
-        className="h-8 w-8 flex-none overflow-hidden rounded-full border transition-colors"
-        style={{ borderColor: theme.border, backgroundColor: theme.raised }}
+        className="h-8 w-8 flex-none overflow-hidden rounded-full border border-border bg-raised transition-colors"
       >
         {user?.avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element

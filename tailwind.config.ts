@@ -5,18 +5,33 @@ export default {
   theme: {
     extend: {
       colors: {
-        canvas: '#0A0C10',
-        surface: '#12151B',
-        raised: '#151A23',
-        chip: '#1A202B',
-        border: { DEFAULT: '#232936', subtle: '#1C212B', chip: '#262D3A' },
-        ink: { DEFAULT: '#E6EAF2', secondary: '#98A2B3', muted: '#5D6878', faint: '#3C4552' },
+        // Raw Bone/Graphite token layer — driven by the CSS vars ThemeProvider
+        // keeps in sync with lib/theme.ts (see cssVarsFor's 2nd layer). Names
+        // mirror the `Theme` interface's own field names 1:1.
+        canvas: 'var(--canvas)',
+        headerBg: 'var(--header-bg)',
+        surface: 'var(--surface)',
+        raised: 'var(--raised)',
+        panel: 'var(--panel)',
+        chip: 'var(--chip)',
+        border: { DEFAULT: 'var(--border)', subtle: 'var(--subtle)', chip: 'var(--chip-border)' },
+        line: 'var(--line)',
+        // named dashedBorder, not `dashed` — `border-dashed` is already
+        // Tailwind's built-in border-style utility, would collide
+        dashedBorder: 'var(--dashed)',
+        ink: { DEFAULT: 'var(--ink)', 2: 'var(--ink-2)', secondary: 'var(--sec)', muted: 'var(--muted-foreground)', faint: 'var(--faint)' },
+        danger: { DEFAULT: 'var(--destructive)', border: 'var(--danger-border)', bg: 'var(--danger-bg)' },
+        overlay: 'var(--overlay)',
+        cardDrag: 'var(--card-drag)',
+        conn: { stroke: 'var(--conn-stroke)', dot: 'var(--conn-dot)' },
         status: {
-          live: '#46E08C',
-          building: '#F0B441',
-          failed: '#FF6459',
-          queued: '#8A94A6',
-          cancelled: '#5D6878',
+          live: 'var(--status-live)',
+          building: 'var(--status-building)',
+          pushing: 'var(--status-pushing)',
+          provisioning: 'var(--status-provisioning)',
+          failed: 'var(--status-failed)',
+          queued: 'var(--status-queued)',
+          cancelled: 'var(--status-cancelled)',
         },
         // shadcn/ui tokens — driven by CSS vars that ThemeProvider keeps in
         // sync with lib/theme.ts's Bone/Graphite palettes (see cssVarsFor)
@@ -24,11 +39,11 @@ export default {
         foreground: 'var(--foreground)',
         card: { DEFAULT: 'var(--card)', foreground: 'var(--card-foreground)' },
         popover: { DEFAULT: 'var(--popover)', foreground: 'var(--popover-foreground)' },
-        primary: { DEFAULT: 'var(--primary)', foreground: 'var(--primary-foreground)' },
+        primary: { DEFAULT: 'var(--primary)', hover: 'var(--primary-hover)', foreground: 'var(--primary-foreground)' },
         secondary: { DEFAULT: 'var(--secondary)', foreground: 'var(--secondary-foreground)' },
         muted: { DEFAULT: 'var(--muted)', foreground: 'var(--muted-foreground)' },
         // neutral hover background for menu/list items (shadcn semantics) —
-        // distinct from the brand teal, which stays JS-driven via theme.ts/theme.accent
+        // distinct from the brand teal (`theme.accent`), which lives on `primary` above
         accent: { DEFAULT: 'var(--accent)', foreground: 'var(--accent-foreground)' },
         destructive: { DEFAULT: 'var(--destructive)', foreground: 'var(--destructive-foreground)' },
         input: 'var(--input)',
@@ -50,6 +65,12 @@ export default {
         label: '12px',    // mono uppercase section labels, chip/badge text
         caption: '13px',  // secondary hints, mono technical values
         'body-sm': '14px', // small body copy
+      },
+      boxShadow: {
+        card: 'var(--shadow-card)',
+        drag: 'var(--shadow-drag)',
+        modal: 'var(--shadow-modal)',
+        glow: 'var(--primary-glow)',
       },
       keyframes: {
         dotPulse: {

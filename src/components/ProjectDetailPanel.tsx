@@ -27,6 +27,8 @@ interface ProjectDetailPanelProps {
   onEnvironmentDeleted: (id: string) => void
 }
 
+const inputClassName = 'rounded-lg border border-border bg-canvas text-ink outline-none transition-colors'
+
 export function ProjectDetailPanel({
   project,
   open,
@@ -40,7 +42,7 @@ export function ProjectDetailPanel({
   onEnvironmentUpdated,
   onEnvironmentDeleted,
 }: ProjectDetailPanelProps) {
-  const { theme, dict } = useThemeContext()
+  const { dict } = useThemeContext()
   const [name, setName] = useState(project.name)
   const [isPrivate, setIsPrivate] = useState(project.isPrivate)
   const [enabled, setEnabled] = useState(project.enabled)
@@ -123,8 +125,6 @@ export function ProjectDetailPanel({
     }
   }
 
-  const inputStyle = { borderColor: theme.border, backgroundColor: theme.canvas, color: theme.ink }
-  const labelStyle = { color: theme.sec }
   const slugPreview = slugify(name)
 
   return (
@@ -145,81 +145,75 @@ export function ProjectDetailPanel({
             >
               {initialFor(project.name)}
             </div>
-            <p className="font-mono text-body-sm" style={{ color: theme.sec }}>
+            <p className="font-mono text-body-sm text-ink-secondary">
               {project.region} · created {formatRelativeTime(project.createdAt)}
             </p>
           </div>
         }
         overview={
           <div className="px-7 py-5">
-            <h3 className="mb-3 font-mono text-label font-medium uppercase tracking-[0.08em]" style={{ color: theme.sec }}>
+            <h3 className="mb-3 font-mono text-label font-medium uppercase tracking-[0.08em] text-ink-secondary">
               Domain
             </h3>
-            <div
-              className="flex items-center justify-between rounded-lg border px-[14px] py-[10px]"
-              style={{ borderColor: theme.line, backgroundColor: theme.raised }}
-            >
-              <span className="font-mono text-body-sm" style={{ color: theme.ink2 }}>{slugify(project.name)}.mitto.app</span>
-              <span className="font-mono text-label uppercase tracking-[0.06em]" style={{ color: theme.sec }}>default</span>
+            <div className="flex items-center justify-between rounded-lg border border-line bg-raised px-[14px] py-[10px]">
+              <span className="font-mono text-body-sm text-ink-2">{slugify(project.name)}.mitto.app</span>
+              <span className="font-mono text-label uppercase tracking-[0.06em] text-ink-secondary">default</span>
             </div>
           </div>
         }
         settings={
           <div className="px-7 py-5">
             <form onSubmit={handleSave}>
-              <label className="mb-[6px] block font-mono text-label uppercase tracking-[0.08em]" style={labelStyle} htmlFor="project-name">
+              <label className="mb-[6px] block font-mono text-label uppercase tracking-[0.08em] text-ink-secondary" htmlFor="project-name">
                 Name
               </label>
               <input
                 id="project-name"
-                className="mb-1 w-full rounded-lg border px-3 py-[9px] text-sm outline-none transition-colors"
-                style={inputStyle}
+                className={`mb-1 w-full px-3 py-[9px] text-sm ${inputClassName}`}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
               {nameError ? (
-                <p className="mt-1 text-xs" style={{ color: theme.danger }}>{nameError}</p>
+                <p className="mt-1 text-xs text-destructive">{nameError}</p>
               ) : (
-                <p className="mt-1 font-mono text-label" style={{ color: theme.sec }}>slug → {slugPreview}</p>
+                <p className="mt-1 font-mono text-label text-ink-secondary">slug → {slugPreview}</p>
               )}
 
               <div className="mt-6 flex items-center justify-between">
                 <div>
-                  <p className="text-body-sm" style={{ color: theme.ink }}>Private</p>
-                  <p className="mt-[2px] font-mono text-label" style={{ color: theme.sec }}>reserved for future team features</p>
+                  <p className="text-body-sm text-ink">Private</p>
+                  <p className="mt-[2px] font-mono text-label text-ink-secondary">reserved for future team features</p>
                 </div>
                 <ToggleSwitch checked={isPrivate} onChange={() => setIsPrivate((v) => !v)} label="Toggle private" />
               </div>
               <div className="mt-[18px] flex items-center justify-between">
                 <div>
-                  <p className="text-body-sm" style={{ color: theme.ink }}>Enabled</p>
-                  <p className="mt-[2px] font-mono text-label" style={{ color: theme.sec }}>new deployments are blocked while disabled</p>
+                  <p className="text-body-sm text-ink">Enabled</p>
+                  <p className="mt-[2px] font-mono text-label text-ink-secondary">new deployments are blocked while disabled</p>
                 </div>
                 <ToggleSwitch checked={enabled} onChange={() => setEnabled((v) => !v)} label="Toggle enabled" />
               </div>
 
-              {saveError && <p className="mt-4 text-xs" style={{ color: theme.danger }}>{saveError}</p>}
+              {saveError && <p className="mt-4 text-xs text-destructive">{saveError}</p>}
 
               <button
                 type="submit"
                 disabled={saving}
-                className="mt-6 rounded-lg px-5 py-[10px] text-body-sm font-semibold transition-colors disabled:opacity-50"
-                style={{ backgroundColor: theme.accent, color: theme.accentInk }}
+                className="mt-6 rounded-lg bg-primary px-5 py-[10px] text-body-sm font-semibold text-primary-foreground transition-colors disabled:opacity-50"
               >
                 {saving ? 'Saving…' : 'Save changes'}
               </button>
             </form>
 
             <div className="mt-8">
-              <h3 className="mb-3 font-mono text-label font-medium uppercase tracking-[0.08em]" style={{ color: theme.sec }}>
+              <h3 className="mb-3 font-mono text-label font-medium uppercase tracking-[0.08em] text-ink-secondary">
                 {dict.environments}
               </h3>
-              <ul className="mb-3 overflow-hidden rounded-[10px] border" style={{ borderColor: theme.line }}>
+              <ul className="mb-3 overflow-hidden rounded-[10px] border border-line">
                 {environments.map((env) => (
                   <li
                     key={env.id}
-                    className="flex items-center gap-[10px] border-b p-[11px_14px] last:border-b-0"
-                    style={{ borderColor: theme.subtle, backgroundColor: theme.surface }}
+                    className="flex items-center gap-[10px] border-b border-border-subtle bg-surface p-[11px_14px] last:border-b-0"
                   >
                     {editingEnvId === env.id ? (
                       <>
@@ -227,22 +221,19 @@ export function ProjectDetailPanel({
                           autoFocus
                           value={editEnvName}
                           onChange={(e) => setEditEnvName(e.target.value)}
-                          className="flex-1 rounded-md border px-2 py-1 text-body-sm outline-none"
-                          style={inputStyle}
+                          className={`flex-1 rounded-md px-2 py-1 text-body-sm ${inputClassName}`}
                         />
                         <button
                           onClick={() => handleSaveEnvironment(env)}
                           aria-label="Save environment name"
-                          className="inline-flex p-[2px]"
-                          style={{ color: theme.accent }}
+                          className="inline-flex p-[2px] text-primary"
                         >
                           <CheckIcon size={14} />
                         </button>
                         <button
                           onClick={() => { setEditingEnvId(null); setEnvError(null) }}
                           aria-label="Cancel rename"
-                          className="inline-flex p-[2px]"
-                          style={{ color: theme.muted }}
+                          className="inline-flex p-[2px] text-ink-muted"
                         >
                           <XIcon size={13} />
                         </button>
@@ -251,19 +242,17 @@ export function ProjectDetailPanel({
                       <>
                         <button
                           onClick={() => startEditEnvironment(env)}
-                          className="flex-1 truncate text-left font-mono text-body-sm font-medium"
-                          style={{ color: theme.ink2 }}
+                          className="flex-1 truncate text-left font-mono text-body-sm font-medium text-ink-2"
                         >
                           {env.name}
                         </button>
                         {env.isDefault && (
-                          <span className="font-mono text-label uppercase tracking-[0.06em]" style={{ color: theme.sec }}>default</span>
+                          <span className="font-mono text-label uppercase tracking-[0.06em] text-ink-secondary">default</span>
                         )}
                         <button
                           onClick={() => handleDeleteEnvironment(env)}
                           aria-label={confirmDeleteEnvId === env.id ? dict.confirmDelete : 'Remove environment'}
-                          className="inline-flex items-center gap-[4px] p-[2px] text-caption"
-                          style={{ color: confirmDeleteEnvId === env.id ? theme.danger : theme.muted }}
+                          className={`inline-flex items-center gap-[4px] p-[2px] text-caption ${confirmDeleteEnvId === env.id ? 'text-destructive' : 'text-ink-muted'}`}
                         >
                           {confirmDeleteEnvId === env.id ? dict.confirmDelete : <Trash2Icon size={13} />}
                         </button>
@@ -271,8 +260,7 @@ export function ProjectDetailPanel({
                           <button
                             onClick={() => setConfirmDeleteEnvId(null)}
                             aria-label="Cancel delete"
-                            className="inline-flex p-[2px]"
-                            style={{ color: theme.muted }}
+                            className="inline-flex p-[2px] text-ink-muted"
                           >
                             <XIcon size={13} />
                           </button>
@@ -282,26 +270,24 @@ export function ProjectDetailPanel({
                   </li>
                 ))}
               </ul>
-              {envError && <p className="mb-3 text-xs" style={{ color: theme.danger }}>{envError}</p>}
+              {envError && <p className="mb-3 text-xs text-destructive">{envError}</p>}
               <button
                 onClick={() => setCreateEnvOpen(true)}
-                className="inline-flex items-center gap-[6px] rounded-lg border px-3 py-[7px] text-body-sm transition-colors"
-                style={{ borderColor: theme.chipBorder, backgroundColor: theme.chip, color: theme.sec }}
+                className="inline-flex items-center gap-[6px] rounded-lg border border-border-chip bg-chip px-3 py-[7px] text-body-sm text-ink-secondary transition-colors"
               >
                 <PlusIcon size={13} />
                 {dict.addEnvironment}
               </button>
             </div>
 
-            <div className="mt-8 rounded-xl border p-[18px]" style={{ borderColor: theme.dangerBorder }}>
-              <h3 className="mb-1 text-sm font-semibold" style={{ color: theme.ink }}>Danger zone</h3>
-              <p className="mb-4 text-xs" style={{ color: theme.sec }}>
+            <div className="mt-8 rounded-xl border border-danger-border p-[18px]">
+              <h3 className="mb-1 text-sm font-semibold text-ink">Danger zone</h3>
+              <p className="mb-4 text-xs text-ink-secondary">
                 Deleting a project also deletes all of its services and deployment history.
               </p>
               <button
                 onClick={() => setShowDeleteDialog(true)}
-                className="inline-flex items-center gap-[6px] rounded-lg border px-4 py-2 text-body-sm font-medium transition-colors"
-                style={{ borderColor: theme.dangerBorder, color: theme.danger }}
+                className="inline-flex items-center gap-[6px] rounded-lg border border-danger-border px-4 py-2 text-body-sm font-medium text-danger transition-colors"
               >
                 <Trash2Icon size={13} />
                 Delete project

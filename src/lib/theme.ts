@@ -151,15 +151,25 @@ export function hexWithAlpha(hex: string, alpha: number): string {
 }
 
 /**
- * Bridges this app's own Bone/Graphite `Theme` objects to the CSS custom
- * properties shadcn/ui's components read (`bg-primary`, `text-foreground`,
- * etc.), so both styling mechanisms show the same colors for the same mode.
- * `--accent`/`--accent-foreground` intentionally map to a neutral hover
- * background (shadcn's own meaning for that token — menu/list item hover),
- * not the brand teal `theme.accent`.
+ * Bridges this app's own Bone/Graphite `Theme` objects to CSS custom
+ * properties so components can consume colors as Tailwind classes instead of
+ * pulling the `theme` object out of `useThemeContext()` for static lookups.
+ * Two layers, both written to `document.documentElement` by `ThemeProvider`:
+ *
+ * 1. shadcn-semantic vars (`--background`, `--foreground`, `--card`, ...) —
+ *    what `ui/*` components (button, dialog, command, ...) already read.
+ *    `--accent`/`--accent-foreground` intentionally map to a neutral hover
+ *    background (shadcn's own meaning for that token), not the brand teal
+ *    `theme.accent` — that one lives on `--primary` instead.
+ * 2. raw Bone/Graphite token vars (`--raised`, `--chip-border`, `--sec`, ...)
+ *    — a 1:1 mirror of every `Theme` field, for everything that doesn't have
+ *    a natural shadcn-semantic equivalent (or where reusing one would be
+ *    more confusing than a dedicated var, e.g. `theme.sec` vs shadcn's own
+ *    `--muted-foreground`).
  */
 export function cssVarsFor(theme: Theme): Record<string, string> {
   return {
+    // shadcn-semantic layer
     '--background': theme.canvas,
     '--foreground': theme.ink,
     '--card': theme.surface,
@@ -179,5 +189,40 @@ export function cssVarsFor(theme: Theme): Record<string, string> {
     '--border': theme.border,
     '--input': theme.border,
     '--ring': theme.accent,
+
+    // raw Bone/Graphite token layer
+    '--canvas': theme.canvas,
+    '--header-bg': theme.headerBg,
+    '--surface': theme.surface,
+    '--raised': theme.raised,
+    '--panel': theme.panel,
+    '--chip': theme.chip,
+    '--chip-border': theme.chipBorder,
+    '--subtle': theme.subtle,
+    '--line': theme.line,
+    '--dashed': theme.dashed,
+    '--ink': theme.ink,
+    '--ink-2': theme.ink2,
+    '--sec': theme.sec,
+    '--faint': theme.faint,
+    '--primary-hover': theme.accentHover,
+    '--danger-border': theme.dangerBorder,
+    '--danger-bg': theme.dangerBg,
+    '--overlay': theme.overlay,
+    '--card-drag': theme.cardDrag,
+    '--shadow-card': theme.shadowCard,
+    '--shadow-drag': theme.shadowDrag,
+    '--shadow-modal': `0 24px 64px ${theme.panelShadow}`,
+    '--primary-glow': `0 0 24px ${theme.accent}80`,
+    '--login-radial-glow': `radial-gradient(ellipse at center, ${theme.accent}22, transparent 65%)`,
+    '--conn-stroke': theme.connStroke,
+    '--conn-dot': theme.connDot,
+    '--status-live': theme.status.live,
+    '--status-building': theme.status.building,
+    '--status-pushing': theme.status.pushing,
+    '--status-provisioning': theme.status.provisioning,
+    '--status-failed': theme.status.failed,
+    '--status-queued': theme.status.queued,
+    '--status-cancelled': theme.status.cancelled,
   }
 }

@@ -4,13 +4,13 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { AuthGuard } from '@/components/AuthGuard'
 import { AppHeader } from '@/components/AppHeader'
-import { Canvas } from '@/components/Canvas'
-import { AddServiceModal } from '@/components/AddServiceModal'
-import { AddServiceChooserModal } from '@/components/AddServiceChooserModal'
-import { ImportFromGithubModal } from '@/components/ImportFromGithubModal'
-import { ServiceDetailPanel } from '@/components/ServiceDetailPanel'
+import { Canvas } from './components/Canvas'
+import { AddServiceModal } from './components/AddServiceModal'
+import { AddServiceChooserModal } from './components/AddServiceChooserModal'
+import { ImportFromGithubModal } from './components/ImportFromGithubModal'
+import { ServiceDetailPanel } from './components/ServiceDetailPanel'
 import { ProjectDetailPanel } from '@/components/ProjectDetailPanel'
-import { EnvironmentSwitcher } from '@/components/EnvironmentSwitcher'
+import { EnvironmentSwitcher } from './components/EnvironmentSwitcher'
 import { CreateEnvironmentModal } from '@/components/CreateEnvironmentModal'
 import { PlusIcon, SettingsIcon } from '@/components/icons'
 import { useThemeContext } from '@/components/ThemeProvider'
@@ -26,7 +26,7 @@ type PanelState =
   | { kind: 'project'; tab: 'overview' | 'settings' }
 
 function ProjectCanvasView({ projectId }: { projectId: string }) {
-  const { theme, dict } = useThemeContext()
+  const { dict } = useThemeContext()
   const router = useRouter()
   const [project, setProject] = useState<Project | null>(null)
   const [latestDeployments, setLatestDeployments] = useState<Record<string, Deployment | undefined>>({})
@@ -118,7 +118,7 @@ function ProjectCanvasView({ projectId }: { projectId: string }) {
   }
 
   if (!project || !selectedEnv) {
-    return <p className="p-6 font-mono text-sm" style={{ color: theme.muted }}>Loading…</p>
+    return <p className="p-6 font-mono text-sm text-ink-muted">Loading…</p>
   }
 
   return (
@@ -126,19 +126,15 @@ function ProjectCanvasView({ projectId }: { projectId: string }) {
       <AppHeader
         breadcrumb={
           <>
-            <span className="font-mono text-body-sm" style={{ color: theme.faint }}>/</span>
+            <span className="font-mono text-body-sm text-ink-faint">/</span>
             <button
               onClick={() => setPanel({ kind: 'project', tab: 'overview' })}
-              className="text-body-sm font-medium transition-colors"
-              style={{ color: theme.ink }}
+              className="text-body-sm font-medium text-ink transition-colors"
             >
               {project.slug}
             </button>
             {!project.enabled && (
-              <span
-                className="rounded-[5px] border px-[7px] py-[2px] font-mono text-label font-medium uppercase tracking-[0.08em]"
-                style={{ color: theme.danger, borderColor: theme.dangerBorder, backgroundColor: theme.dangerBg }}
-              >
+              <span className="rounded-[5px] border border-danger-border bg-danger-bg px-[7px] py-[2px] font-mono text-label font-medium uppercase tracking-[0.08em] text-danger">
                 disabled
               </span>
             )}
@@ -156,15 +152,13 @@ function ProjectCanvasView({ projectId }: { projectId: string }) {
             <button
               onClick={() => setPanel({ kind: 'project', tab: 'settings' })}
               aria-label="Project settings"
-              className="inline-flex h-8 w-8 flex-none items-center justify-center rounded-lg border transition-colors"
-              style={{ borderColor: theme.border, backgroundColor: theme.surface, color: theme.sec }}
+              className="inline-flex h-8 w-8 flex-none items-center justify-center rounded-lg border border-border bg-surface text-ink-secondary transition-colors"
             >
               <SettingsIcon size={14} />
             </button>
             <button
               onClick={() => setAddServiceStep('choose')}
-              className="inline-flex h-8 items-center gap-[6px] rounded-lg px-[14px] text-body-sm font-semibold transition-colors"
-              style={{ backgroundColor: theme.accent, color: theme.accentInk }}
+              className="inline-flex h-8 items-center gap-[6px] rounded-lg bg-primary px-[14px] text-body-sm font-semibold text-primary-foreground transition-colors"
             >
               <PlusIcon size={13} />
               {dict.addService}
