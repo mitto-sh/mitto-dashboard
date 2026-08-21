@@ -1,10 +1,10 @@
 import { getToken, clearToken } from './auth'
 import type {
-  Project, Service, ServiceType, RepoProvider, Deployment, EnvVar, User,
+  Project, Service, ServiceType, RepoProvider, Deployment, EnvVar, User, Environment,
   GithubInstallation, GithubRepo, RepoConfigResult,
 } from './types'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000'
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'
 
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
@@ -71,18 +71,28 @@ export const api = {
   updateService: (id: string, data: { enabled?: boolean }) =>
     request<Service>(`/services/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
 
-  listDeployments: (serviceId: string) =>
-    request<Deployment[]>(`/deployments?serviceId=${serviceId}`),
-  triggerDeployment: (serviceId: string) =>
-    request<Deployment>('/deployments', { method: 'POST', body: JSON.stringify({ serviceId }) }),
+  listDeployments: (serviceId: string, environmentId?: string) =>
+    request<Deployment[]>(`/deployments?serviceId=${serviceId}${environmentId ? `&environmentId=${environmentId}` : ''}`),
+  triggerDeployment: (serviceId: string, environmentId: string) =>
+    request<Deployment>('/deployments', { method: 'POST', body: JSON.stringify({ serviceId, environmentId }) }),
   cancelDeployment: (id: string) =>
     request<Deployment>(`/deployments/${id}/cancel`, { method: 'POST' }),
 
-  listEnvVars: (serviceId: string) => request<EnvVar[]>(`/env/${serviceId}`),
-  upsertEnvVars: (serviceId: string, vars: Array<{ key: string; value: string; isSecret: boolean }>) =>
-    request<EnvVar[]>(`/env/${serviceId}`, { method: 'PUT', body: JSON.stringify({ vars }) }),
-  deleteEnvVar: (serviceId: string, key: string) =>
-    request<void>(`/env/${serviceId}/${key}`, { method: 'DELETE' }),
+  listEnvVars: (serviceId: string, environmentId: string) =>
+    request<EnvVar[]>(`/env/${serviceId}?environmentId=${environmentId}`),
+  upsertEnvVars: (serviceId: string, environmentId: string, vars: Array<{ key: string; value: string; isSecret: boolean }>) =>
+    request<EnvVar[]>(`/env/${serviceId}`, { method: 'PUT', body: JSON.stringify({ environmentId, vars }) }),
+  deleteEnvVar: (serviceId: string, environmentId: string, key: string) =>
+    request<void>(`/env/${serviceId}/${key}?environmentId=${environmentId}`, { method: 'DELETE' }),
+
+  listEnvironments: (projectId: string) =>
+    request<Environment[]>(`/environments?projectId=${projectId}`),
+  createEnvironment: (data: { projectId: string; name: string }) =>
+    request<Environment>('/environments', { method: 'POST', body: JSON.stringify(data) }),
+  updateEnvironment: (id: string, data: { name: string }) =>
+    request<Environment>(`/environments/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteEnvironment: (id: string) =>
+    request<void>(`/environments/${id}`, { method: 'DELETE' }),
 
   githubInstallUrl: () => request<{ url: string }>('/github/install-url'),
   listGithubInstallations: () => request<GithubInstallation[]>('/github/installations'),

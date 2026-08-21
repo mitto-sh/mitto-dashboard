@@ -5,6 +5,8 @@ Web UI — the Mitto control panel. Projects are a canvas of draggable service c
 ## Features
 - GitHub OAuth login (redirect flow against mitto-api)
 - Project list + creation
+- Per-project environments (production/dev + custom ones), switchable from the project header —
+  env vars, env var editing, and deployment history are all scoped to the selected environment
 - Per-project canvas: services as draggable cards (positions persisted in localStorage)
 - Service creation, env var editor, deploy trigger/cancel, deployment status
 
@@ -20,11 +22,11 @@ Not yet built: live logs, custom domains, database provisioning, teams/orgs, bil
 ```bash
 cp .env.example .env.local
 npm install
-npm run dev   # http://localhost:3001
+npm run dev   # http://localhost:4001
 ```
 
-Requires `mitto-api` running (default `http://localhost:3000`, see `NEXT_PUBLIC_API_URL`) with
-`DASHBOARD_URL=http://localhost:3001` set in its `.env` so the OAuth callback redirects here.
+Requires `mitto-api` running (default `http://localhost:4000`, see `NEXT_PUBLIC_API_URL`) with
+`DASHBOARD_URL=http://localhost:4001` set in its `.env` so the OAuth callback redirects here.
 
 ## Testing
 ```bash

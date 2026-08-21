@@ -15,10 +15,15 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('@/lib/api', () => ({
   api: {
+    me: vi.fn(),
     listProjects: vi.fn(),
     createProject: vi.fn(),
     updateProject: vi.fn(),
     deleteProject: vi.fn(),
+    listEnvironments: vi.fn(),
+    createEnvironment: vi.fn(),
+    updateEnvironment: vi.fn(),
+    deleteEnvironment: vi.fn(),
   },
 }))
 
@@ -38,6 +43,8 @@ describe('ProjectsPage', () => {
     routerReplace.mockClear()
     routerPush.mockClear()
     vi.mocked(api.listProjects).mockResolvedValue([])
+    vi.mocked(api.listEnvironments).mockResolvedValue([])
+    vi.mocked(api.me).mockResolvedValue({ id: 'u1', email: 'test@example.com', name: 'Test User', avatarUrl: null, plan: 'free' })
   })
 
   it('shows an empty state when there are no projects', async () => {

@@ -10,10 +10,13 @@ import { AddServiceChooserModal } from '@/components/AddServiceChooserModal'
 import { ImportFromGithubModal } from '@/components/ImportFromGithubModal'
 import { ServiceDetailPanel } from '@/components/ServiceDetailPanel'
 import { ProjectDetailPanel } from '@/components/ProjectDetailPanel'
+import { EnvironmentSwitcher } from '@/components/EnvironmentSwitcher'
+import { CreateEnvironmentModal } from '@/components/CreateEnvironmentModal'
 import { PlusIcon, SettingsIcon } from '@/components/icons'
 import { useThemeContext } from '@/components/ThemeProvider'
 import { api } from '@/lib/api'
-import type { Project, Service, Deployment } from '@/lib/types'
+import { getSelectedEnvironmentId, setSelectedEnvironmentId } from '@/lib/selectedEnvironment'
+import type { Project, Service, Deployment, Environment } from '@/lib/types'
 
 type AddServiceStep = 'closed' | 'choose' | 'manual' | 'github'
 
@@ -29,19 +32,63 @@ function ProjectCanvasView({ projectId }: { projectId: string }) {
   const [latestDeployments, setLatestDeployments] = useState<Record<string, Deployment | undefined>>({})
   const [panel, setPanel] = useState<PanelState>({ kind: 'none' })
   const [addServiceStep, setAddServiceStep] = useState<AddServiceStep>('closed')
+  const [environments, setEnvironments] = useState<Environment[]>([])
+  const [selectedEnv, setSelectedEnv] = useState<Environment | null>(null)
+  const [createEnvOpen, setCreateEnvOpen] = useState(false)
 
   useEffect(() => {
     api.getProject(projectId).then(async (p) => {
       setProject(p)
-      const entries = await Promise.all(
-        (p.services ?? []).map(async (s) => {
-          const deployments = await api.listDeployments(s.id).catch(() => [])
-          return [s.id, deployments[0]] as const
-        }),
-      )
-      setLatestDeployments(Object.fromEntries(entries))
+      const envs = await api.listEnvironments(projectId).catch(() => [])
+      setEnvironments(envs)
+
+      const storedId = getSelectedEnvironmentId(projectId)
+      const initial = envs.find((e) => e.id === storedId) ?? envs.find((e) => e.isDefault) ?? envs[0] ?? null
+      setSelectedEnv(initial)
     }).catch(() => {})
   }, [projectId])
+
+  useEffect(() => {
+    if (!project || !selectedEnv) return
+
+    Promise.all(
+      (project.services ?? []).map(async (s) => {
+        const deployments = await api.listDeployments(s.id, selectedEnv.id).catch(() => [])
+        return [s.id, deployments[0]] as const
+      }),
+    ).then((entries) => setLatestDeployments(Object.fromEntries(entries)))
+  }, [project, selectedEnv])
+
+  function handleSelectEnv(env: Environment) {
+    setSelectedEnv(env)
+    setSelectedEnvironmentId(projectId, env.id)
+  }
+
+  async function handleCreateEnv(data: { name: string }) {
+    const env = await api.createEnvironment({ projectId, name: data.name })
+    setEnvironments((prev) => [...prev, env])
+    handleSelectEnv(env)
+    setCreateEnvOpen(false)
+  }
+
+  function handleEnvironmentCreated(env: Environment) {
+    setEnvironments((prev) => [...prev, env])
+  }
+
+  function handleEnvironmentUpdated(env: Environment) {
+    setEnvironments((prev) => prev.map((e) => (e.id === env.id ? env : e)))
+    setSelectedEnv((prev) => (prev && prev.id === env.id ? env : prev))
+  }
+
+  function handleEnvironmentDeleted(id: string) {
+    const next = environments.filter((e) => e.id !== id)
+    setEnvironments(next)
+    if (selectedEnv?.id === id) {
+      const fallback = next.find((e) => e.isDefault) ?? next[0] ?? null
+      setSelectedEnv(fallback)
+      if (fallback) setSelectedEnvironmentId(projectId, fallback.id)
+    }
+  }
 
   async function handleCreateService(data: { name: string; type: string; port?: number }) {
     const service = await api.createService({
@@ -70,7 +117,7 @@ function ProjectCanvasView({ projectId }: { projectId: string }) {
     setLatestDeployments((prev) => ({ ...prev, [deployment.serviceId]: deployment }))
   }
 
-  if (!project) {
+  if (!project || !selectedEnv) {
     return <p className="p-6 font-mono text-sm" style={{ color: theme.muted }}>Loading…</p>
   }
 
@@ -79,10 +126,10 @@ function ProjectCanvasView({ projectId }: { projectId: string }) {
       <AppHeader
         breadcrumb={
           <>
-            <span className="font-mono text-caption" style={{ color: theme.faint }}>/</span>
+            <span className="font-mono text-body-sm" style={{ color: theme.faint }}>/</span>
             <button
               onClick={() => setPanel({ kind: 'project', tab: 'overview' })}
-              className="text-caption font-medium transition-colors"
+              className="text-body-sm font-medium transition-colors"
               style={{ color: theme.ink }}
             >
               {project.slug}
@@ -95,6 +142,13 @@ function ProjectCanvasView({ projectId }: { projectId: string }) {
                 disabled
               </span>
             )}
+            <EnvironmentSwitcher
+              environments={environments}
+              selected={selectedEnv}
+              onSelect={handleSelectEnv}
+              onCreateNew={() => setCreateEnvOpen(true)}
+              onManage={() => setPanel({ kind: 'project', tab: 'settings' })}
+            />
           </>
         }
         actions={
@@ -102,14 +156,14 @@ function ProjectCanvasView({ projectId }: { projectId: string }) {
             <button
               onClick={() => setPanel({ kind: 'project', tab: 'settings' })}
               aria-label="Project settings"
-              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border transition-colors"
-              style={{ borderColor: theme.border, color: theme.sec }}
+              className="inline-flex h-8 w-8 flex-none items-center justify-center rounded-lg border transition-colors"
+              style={{ borderColor: theme.border, backgroundColor: theme.surface, color: theme.sec }}
             >
               <SettingsIcon size={14} />
             </button>
             <button
               onClick={() => setAddServiceStep('choose')}
-              className="inline-flex items-center gap-[6px] rounded-lg px-[14px] py-[7px] text-body-sm font-semibold transition-colors"
+              className="inline-flex h-8 items-center gap-[6px] rounded-lg px-[14px] text-body-sm font-semibold transition-colors"
               style={{ backgroundColor: theme.accent, color: theme.accentInk }}
             >
               <PlusIcon size={13} />
@@ -152,9 +206,17 @@ function ProjectCanvasView({ projectId }: { projectId: string }) {
         />
       )}
 
+      {createEnvOpen && (
+        <CreateEnvironmentModal
+          onCancel={() => setCreateEnvOpen(false)}
+          onCreate={handleCreateEnv}
+        />
+      )}
+
       {panel.kind === 'service' && (
         <ServiceDetailPanel
           service={panel.service}
+          environmentId={selectedEnv.id}
           onClose={() => setPanel({ kind: 'none' })}
           onServiceUpdated={handleServiceUpdated}
           onDeploymentTriggered={handleDeploymentTriggered}
@@ -170,6 +232,10 @@ function ProjectCanvasView({ projectId }: { projectId: string }) {
           onClose={() => setPanel({ kind: 'none' })}
           onProjectUpdated={setProject}
           onDeleted={() => router.push('/projects')}
+          environments={environments}
+          onEnvironmentCreated={handleEnvironmentCreated}
+          onEnvironmentUpdated={handleEnvironmentUpdated}
+          onEnvironmentDeleted={handleEnvironmentDeleted}
         />
       )}
     </div>

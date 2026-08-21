@@ -59,6 +59,19 @@ export function validateProjectForm(name: string): ProjectFormResult {
   return { valid: true, data: { name: trimmed } }
 }
 
+export interface EnvironmentFormResult {
+  valid: boolean
+  error?: string
+  data?: { name: string }
+}
+
+export function validateEnvironmentForm(name: string): EnvironmentFormResult {
+  const trimmed = name.trim()
+  if (!trimmed) return { valid: false, error: 'Name is required' }
+  if (trimmed.length > 64) return { valid: false, error: 'Name must be 64 characters or fewer' }
+  return { valid: true, data: { name: trimmed } }
+}
+
 export function slugify(name: string): string {
   return (
     name

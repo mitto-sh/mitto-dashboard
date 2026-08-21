@@ -38,6 +38,15 @@ export interface Service {
   runtime: string | null
 }
 
+export interface Environment {
+  id: string
+  projectId: string
+  name: string
+  slug: string
+  isDefault: boolean
+  createdAt: string
+}
+
 export type DeploymentStatus =
   | 'queued'
   | 'building'
@@ -50,6 +59,7 @@ export type DeploymentStatus =
 export interface Deployment {
   id: string
   serviceId: string
+  environmentId: string
   status: DeploymentStatus
   commitSha: string | null
   commitMessage: string | null
@@ -61,6 +71,7 @@ export interface Deployment {
 export interface EnvVar {
   id: string
   serviceId: string
+  environmentId: string
   key: string
   value: string
   isSecret: boolean

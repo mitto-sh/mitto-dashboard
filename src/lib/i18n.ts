@@ -30,6 +30,16 @@ export interface Dictionary {
   manualConfigDesc: string
   importFromGithub: string
   importFromGithubDesc: string
+  environment: string
+  newEnvironment: string
+  createEnvironment: string
+  environmentName: string
+  cannotDeleteDefaultEnv: string
+  cannotDeleteLastEnv: string
+  environments: string
+  manageEnvironments: string
+  addEnvironment: string
+  confirmDelete: string
 }
 
 export const EN: Dictionary = {
@@ -62,6 +72,16 @@ export const EN: Dictionary = {
   manualConfigDesc: 'Define name, type and port yourself',
   importFromGithub: 'Import from GitHub',
   importFromGithubDesc: 'Pick a repo — services are detected from mitto.yaml',
+  environment: 'Environment',
+  newEnvironment: 'New environment',
+  createEnvironment: 'Create environment',
+  environmentName: 'Environment name',
+  cannotDeleteDefaultEnv: 'The default environment cannot be deleted',
+  cannotDeleteLastEnv: 'A project must have at least one environment',
+  environments: 'Environments',
+  manageEnvironments: 'Manage environments',
+  addEnvironment: 'Add environment',
+  confirmDelete: 'Delete?',
 }
 
 export const ES: Dictionary = {
@@ -94,6 +114,16 @@ export const ES: Dictionary = {
   manualConfigDesc: 'Definí nombre, tipo y puerto vos mismo',
   importFromGithub: 'Importar desde GitHub',
   importFromGithubDesc: 'Elegí un repo — los servicios se detectan desde mitto.yaml',
+  environment: 'Ambiente',
+  newEnvironment: 'Nuevo ambiente',
+  createEnvironment: 'Crear ambiente',
+  environmentName: 'Nombre del ambiente',
+  cannotDeleteDefaultEnv: 'El ambiente por defecto no se puede eliminar',
+  cannotDeleteLastEnv: 'Un proyecto debe tener al menos un ambiente',
+  environments: 'Ambientes',
+  manageEnvironments: 'Gestionar ambientes',
+  addEnvironment: 'Agregar ambiente',
+  confirmDelete: '¿Eliminar?',
 }
 
 export const DICTIONARIES: Record<Lang, Dictionary> = { en: EN, es: ES }

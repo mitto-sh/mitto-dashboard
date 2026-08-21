@@ -19,11 +19,11 @@ const serviceWithRepo: Service = {
 }
 
 const queuedDeployment: Deployment = {
-  id: 'd1', serviceId: 'svc-1', status: 'queued', commitSha: 'abc',
+  id: 'd1', serviceId: 'svc-1', environmentId: 'env-1', status: 'queued', commitSha: 'abc',
   commitMessage: 'init', deployUrl: null, errorMessage: null, createdAt: '',
 }
 
-const envVar: EnvVar = { id: 'e1', serviceId: 'svc-1', key: 'NODE_ENV', value: '***', isSecret: true }
+const envVar: EnvVar = { id: 'e1', serviceId: 'svc-1', environmentId: 'env-1', key: 'NODE_ENV', value: '***', isSecret: true }
 
 vi.mock('@/lib/api', () => ({
   api: {
@@ -46,6 +46,7 @@ function renderPanel(overrides: Partial<Parameters<typeof ServiceDetailPanel>[0]
   renderWithTheme(
     <ServiceDetailPanel
       service={service}
+      environmentId="env-1"
       onClose={onClose}
       onServiceUpdated={onServiceUpdated}
       onDeploymentTriggered={onDeploymentTriggered}
@@ -116,7 +117,7 @@ describe('ServiceDetailPanel', () => {
     expect(await screen.findByText('NODE_ENV')).toBeInTheDocument()
 
     fireEvent.click(screen.getByLabelText('Remove variable'))
-    await waitFor(() => expect(api.deleteEnvVar).toHaveBeenCalledWith('svc-1', 'NODE_ENV'))
+    await waitFor(() => expect(api.deleteEnvVar).toHaveBeenCalledWith('svc-1', 'env-1', 'NODE_ENV'))
   })
 
   it('adds a new env var', async () => {
@@ -131,7 +132,7 @@ describe('ServiceDetailPanel', () => {
     fireEvent.submit(screen.getByLabelText('Env var key').closest('form')!)
 
     await waitFor(() => {
-      expect(api.upsertEnvVars).toHaveBeenCalledWith('svc-1', [{ key: 'PORT', value: '3000', isSecret: true }])
+      expect(api.upsertEnvVars).toHaveBeenCalledWith('svc-1', 'env-1', [{ key: 'PORT', value: '3000', isSecret: true }])
     })
   })
 

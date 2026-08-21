@@ -35,7 +35,7 @@ export function AddServiceChooserModal({ onCancel, onManual, onGithub }: AddServ
               <SettingsIcon size={16} style={{ color: theme.sec }} />
               <span>
                 <span className="block text-sm font-medium" style={{ color: theme.ink }}>{dict.manualConfig}</span>
-                <span className="mt-[2px] block font-mono text-label" style={{ color: theme.faint }}>{dict.manualConfigDesc}</span>
+                <span className="mt-[2px] block font-mono text-label" style={{ color: theme.sec }}>{dict.manualConfigDesc}</span>
               </span>
             </span>
             <ArrowRightIcon size={13} style={{ color: theme.faint }} />
@@ -52,7 +52,7 @@ export function AddServiceChooserModal({ onCancel, onManual, onGithub }: AddServ
               </svg>
               <span>
                 <span className="block text-sm font-medium" style={{ color: theme.ink }}>{dict.importFromGithub}</span>
-                <span className="mt-[2px] block font-mono text-label" style={{ color: theme.faint }}>{dict.importFromGithubDesc}</span>
+                <span className="mt-[2px] block font-mono text-label" style={{ color: theme.sec }}>{dict.importFromGithubDesc}</span>
               </span>
             </span>
             <ArrowRightIcon size={13} style={{ color: theme.faint }} />

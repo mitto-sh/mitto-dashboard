@@ -61,6 +61,8 @@ export function ServiceCard({ service, position, latestStatus, selected, onSelec
           style={{ backgroundColor: hasStatus ? color : theme.faint }}
         />
         <span className="flex-1 truncate text-body-sm font-semibold tracking-tight">{service.name}</span>
+      </div>
+      <div className="mt-[9px] flex items-center gap-[6px]">
         {!service.enabled && (
           <span
             className="flex-none rounded-[5px] border px-[6px] py-[1px] font-mono text-label font-medium uppercase tracking-[0.08em]"
@@ -77,7 +79,7 @@ export function ServiceCard({ service, position, latestStatus, selected, onSelec
           {service.type}
         </span>
       </div>
-      <div className="mt-[14px] flex items-center justify-between font-mono text-xs">
+      <div className="mt-[12px] flex items-center justify-between font-mono text-xs">
         <span style={{ color: theme.muted }}>{service.port ? `:${service.port}` : 'no port'}</span>
         <span style={{ color: hasStatus ? color : theme.faint }}>{statusLabel(latestStatus)}</span>
       </div>

@@ -9,11 +9,10 @@ import { CreateProjectModal } from '@/components/CreateProjectModal'
 import { DeleteProjectDialog } from '@/components/DeleteProjectDialog'
 import { ProjectCard } from '@/components/ProjectCard'
 import { ProjectDetailPanel } from '@/components/ProjectDetailPanel'
-import { CommandPalette } from '@/components/CommandPalette'
 import type { EntityPanelTab } from '@/components/EntityPanel'
 import { useThemeContext } from '@/components/ThemeProvider'
 import { api } from '@/lib/api'
-import type { Project } from '@/lib/types'
+import type { Project, Environment } from '@/lib/types'
 
 const GITHUB_ERROR_MESSAGES: Record<string, string> = {
   missing_params: 'GitHub did not send back the expected parameters. Try connecting again.',
@@ -58,26 +57,20 @@ function ProjectsList() {
   const [query, setQuery] = useState('')
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [deletingProject, setDeletingProject] = useState<Project | null>(null)
-  const [paletteOpen, setPaletteOpen] = useState(false)
   const [settingsProject, setSettingsProject] = useState<Project | null>(null)
   const [settingsTab, setSettingsTab] = useState<EntityPanelTab>('settings')
+  const [settingsEnvironments, setSettingsEnvironments] = useState<Environment[]>([])
+
+  useEffect(() => {
+    if (!settingsProject) return
+    api.listEnvironments(settingsProject.id).then(setSettingsEnvironments).catch(() => setSettingsEnvironments([]))
+  }, [settingsProject])
 
   useEffect(() => {
     api.listProjects().then((data) => {
       setProjects(data)
       setLoading(false)
     }).catch(() => setLoading(false))
-  }, [])
-
-  useEffect(() => {
-    function onKeyDown(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault()
-        setPaletteOpen(true)
-      }
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
   }, [])
 
   function handleCreated(project: Project) {
@@ -100,6 +93,18 @@ function ProjectsList() {
     setSettingsProject(null)
   }
 
+  function handleEnvironmentCreated(env: Environment) {
+    setSettingsEnvironments((prev) => [...prev, env])
+  }
+
+  function handleEnvironmentUpdated(env: Environment) {
+    setSettingsEnvironments((prev) => prev.map((e) => (e.id === env.id ? env : e)))
+  }
+
+  function handleEnvironmentDeleted(id: string) {
+    setSettingsEnvironments((prev) => prev.filter((e) => e.id !== id))
+  }
+
   const filtered = projects.filter((p) =>
     p.name.toLowerCase().includes(query.toLowerCase()) || p.slug.toLowerCase().includes(query.toLowerCase()),
   )
@@ -110,22 +115,8 @@ function ProjectsList() {
         actions={
           <>
             <button
-              onClick={() => setPaletteOpen(true)}
-              className="hidden items-center gap-[8px] rounded-lg border px-[10px] py-[9px] font-mono text-xs transition-colors sm:inline-flex"
-              style={{ borderColor: theme.border, backgroundColor: theme.surface, color: theme.muted }}
-            >
-              <SearchIcon size={13} />
-              Jump to…
-              <span
-                className="rounded-[4px] border px-[5px] py-[1px] text-label"
-                style={{ borderColor: theme.chipBorder, backgroundColor: theme.chip }}
-              >
-                ⌘K
-              </span>
-            </button>
-            <button
               onClick={() => setShowCreateModal(true)}
-              className="inline-flex items-center gap-[6px] rounded-lg px-[14px] py-[7px] text-body-sm font-semibold transition-colors"
+              className="inline-flex h-8 items-center gap-[6px] rounded-lg px-[14px] text-body-sm font-semibold transition-colors"
               style={{ backgroundColor: theme.accent, color: theme.accentInk }}
             >
               <PlusIcon size={13} />
@@ -200,8 +191,6 @@ function ProjectsList() {
         />
       )}
 
-      <CommandPalette projects={projects} open={paletteOpen} onOpenChange={setPaletteOpen} />
-
       {settingsProject && (
         <ProjectDetailPanel
           project={settingsProject}
@@ -211,6 +200,10 @@ function ProjectsList() {
           onClose={() => setSettingsProject(null)}
           onProjectUpdated={handleProjectUpdated}
           onDeleted={handleProjectDeletedFromSettings}
+          environments={settingsEnvironments}
+          onEnvironmentCreated={handleEnvironmentCreated}
+          onEnvironmentUpdated={handleEnvironmentUpdated}
+          onEnvironmentDeleted={handleEnvironmentDeleted}
         />
       )}
     </div>

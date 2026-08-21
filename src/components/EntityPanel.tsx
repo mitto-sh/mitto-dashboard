@@ -42,7 +42,8 @@ export function EntityPanel({
         side="right"
         showCloseButton={false}
         onInteractOutside={(e) => e.preventDefault()}
-        className="w-1/2 min-w-[400px] gap-0 p-0"
+        className="gap-0 p-0"
+        style={{ width: '50vw', maxWidth: '50vw', minWidth: 400 }}
       >
         <div className="px-7 pt-6">
           <div className="flex items-center gap-3">

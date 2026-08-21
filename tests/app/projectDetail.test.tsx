@@ -3,7 +3,7 @@ import { screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithTheme } from '../helpers/renderWithTheme'
 import { setToken } from '@/lib/auth'
-import type { Project, Service } from '@/lib/types'
+import type { Project, Service, Environment } from '@/lib/types'
 
 const routerPush = vi.fn()
 vi.mock('next/navigation', () => ({
@@ -13,13 +13,19 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('@/lib/api', () => ({
   api: {
+    me: vi.fn(),
     getProject: vi.fn(),
+    listProjects: vi.fn(),
     listDeployments: vi.fn(),
     createService: vi.fn(),
     updateService: vi.fn(),
     updateProject: vi.fn(),
     deleteProject: vi.fn(),
     listEnvVars: vi.fn(),
+    listEnvironments: vi.fn(),
+    createEnvironment: vi.fn(),
+    updateEnvironment: vi.fn(),
+    deleteEnvironment: vi.fn(),
     listGithubInstallations: vi.fn(),
     listInstallationRepos: vi.fn(),
     getRepoConfig: vi.fn(),
@@ -37,14 +43,20 @@ const project: Project = {
   id: 'p1', name: 'My App', slug: 'my-app', region: 'us-east-1',
   isPrivate: true, enabled: true, createdAt: new Date().toISOString(), services: [service],
 }
+const productionEnv: Environment = {
+  id: 'env-1', projectId: 'p1', name: 'Production', slug: 'production', isDefault: true, createdAt: new Date().toISOString(),
+}
 
 describe('ProjectPage (canvas)', () => {
   beforeEach(() => {
     setToken('a-token')
     routerPush.mockClear()
     vi.mocked(api.getProject).mockResolvedValue(project)
+    vi.mocked(api.listProjects).mockResolvedValue([project])
     vi.mocked(api.listDeployments).mockResolvedValue([])
     vi.mocked(api.listEnvVars).mockResolvedValue([])
+    vi.mocked(api.listEnvironments).mockResolvedValue([productionEnv])
+    vi.mocked(api.me).mockResolvedValue({ id: 'u1', email: 'test@example.com', name: 'Test User', avatarUrl: null, plan: 'free' })
   })
 
   it('renders the project name and its services on the canvas', async () => {

@@ -14,6 +14,7 @@ import { ServiceTypeIcon, XIcon, RocketIcon } from './icons'
 
 interface ServiceDetailPanelProps {
   service: Service
+  environmentId: string
   onClose: () => void
   onServiceUpdated: (service: Service) => void
   onDeploymentTriggered: (deployment: Deployment) => void
@@ -23,6 +24,7 @@ const CANCELLABLE = new Set(['queued', 'building', 'pushing', 'provisioning'])
 
 export function ServiceDetailPanel({
   service,
+  environmentId,
   onClose,
   onServiceUpdated,
   onDeploymentTriggered,
@@ -39,9 +41,9 @@ export function ServiceDetailPanel({
   const [showDisableConfirm, setShowDisableConfirm] = useState(false)
 
   useEffect(() => {
-    api.listDeployments(service.id).then(setDeployments).catch(() => setDeployments([]))
-    api.listEnvVars(service.id).then(setEnvVars).catch(() => setEnvVars([]))
-  }, [service.id])
+    api.listDeployments(service.id, environmentId).then(setDeployments).catch(() => setDeployments([]))
+    api.listEnvVars(service.id, environmentId).then(setEnvVars).catch(() => setEnvVars([]))
+  }, [service.id, environmentId])
 
   const latest = deployments[0]
   const color = statusColorFor(theme, latest?.status)
@@ -50,7 +52,7 @@ export function ServiceDetailPanel({
     setBusy(true)
     setError(null)
     try {
-      const deployment = await api.triggerDeployment(service.id)
+      const deployment = await api.triggerDeployment(service.id, environmentId)
       setDeployments((prev) => [deployment, ...prev])
       onDeploymentTriggered(deployment)
     } catch (e) {
@@ -74,7 +76,7 @@ export function ServiceDetailPanel({
   async function handleAddEnvVar(e: React.FormEvent) {
     e.preventDefault()
     if (!newKey.trim()) return
-    const updated = await api.upsertEnvVars(service.id, [
+    const updated = await api.upsertEnvVars(service.id, environmentId, [
       { key: newKey.trim(), value: newValue, isSecret: true },
     ])
     setEnvVars((prev) => {
@@ -86,7 +88,7 @@ export function ServiceDetailPanel({
   }
 
   async function handleDeleteEnvVar(key: string) {
-    await api.deleteEnvVar(service.id, key)
+    await api.deleteEnvVar(service.id, environmentId, key)
     setEnvVars((prev) => prev.filter((v) => v.key !== key))
   }
 

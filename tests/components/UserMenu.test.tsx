@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest'
-import { screen } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithTheme } from '../helpers/renderWithTheme'
 import { UserMenu } from '@/components/UserMenu'
@@ -10,7 +10,34 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ push }),
 }))
 
+vi.mock('@/lib/api', () => ({
+  api: {
+    me: vi.fn(),
+  },
+}))
+
+import { api } from '@/lib/api'
+
 describe('UserMenu', () => {
+  beforeEach(() => {
+    vi.mocked(api.me).mockResolvedValue({ id: 'u1', email: 'ada@example.com', name: 'Ada Lovelace', avatarUrl: null, plan: 'free' })
+  })
+
+  it('shows the GitHub avatar image when one is available', async () => {
+    vi.mocked(api.me).mockResolvedValue({ id: 'u1', email: 'ada@example.com', name: 'Ada Lovelace', avatarUrl: 'https://avatars.githubusercontent.com/u/1', plan: 'free' })
+    renderWithTheme(<UserMenu />)
+
+    const trigger = screen.getByLabelText('User menu')
+    await waitFor(() => {
+      expect(trigger.querySelector('img')).toHaveAttribute('src', 'https://avatars.githubusercontent.com/u/1')
+    })
+  })
+
+  it('falls back to an initial when there is no avatar', async () => {
+    renderWithTheme(<UserMenu />)
+    expect(await screen.findByText('A')).toBeInTheDocument()
+  })
+
   it('opens with Theme, Language and Sign out items', async () => {
     renderWithTheme(<UserMenu />)
     await userEvent.click(screen.getByLabelText('User menu'))

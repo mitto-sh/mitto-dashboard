@@ -2,12 +2,15 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { screen, fireEvent, waitFor } from '@testing-library/react'
 import { renderWithTheme } from '../helpers/renderWithTheme'
 import { ProjectDetailPanel } from '@/components/ProjectDetailPanel'
-import type { Project } from '@/lib/types'
+import type { Project, Environment } from '@/lib/types'
 
 vi.mock('@/lib/api', () => ({
   api: {
     updateProject: vi.fn(),
     deleteProject: vi.fn(),
+    createEnvironment: vi.fn(),
+    updateEnvironment: vi.fn(),
+    deleteEnvironment: vi.fn(),
   },
 }))
 
@@ -18,11 +21,25 @@ const project: Project = {
   isPrivate: true, enabled: true, createdAt: new Date().toISOString(),
 }
 
-function setup(tab: 'overview' | 'settings' = 'settings', overrides: Partial<Project> = {}) {
+const productionEnv: Environment = {
+  id: 'env-1', projectId: 'p1', name: 'Production', slug: 'production', isDefault: true, createdAt: new Date().toISOString(),
+}
+const devEnv: Environment = {
+  id: 'env-2', projectId: 'p1', name: 'Development', slug: 'development', isDefault: false, createdAt: new Date().toISOString(),
+}
+
+function setup(
+  tab: 'overview' | 'settings' = 'settings',
+  overrides: Partial<Project> = {},
+  environments: Environment[] = [productionEnv, devEnv],
+) {
   const onTabChange = vi.fn()
   const onClose = vi.fn()
   const onProjectUpdated = vi.fn()
   const onDeleted = vi.fn()
+  const onEnvironmentCreated = vi.fn()
+  const onEnvironmentUpdated = vi.fn()
+  const onEnvironmentDeleted = vi.fn()
   renderWithTheme(
     <ProjectDetailPanel
       project={{ ...project, ...overrides }}
@@ -32,9 +49,13 @@ function setup(tab: 'overview' | 'settings' = 'settings', overrides: Partial<Pro
       onClose={onClose}
       onProjectUpdated={onProjectUpdated}
       onDeleted={onDeleted}
+      environments={environments}
+      onEnvironmentCreated={onEnvironmentCreated}
+      onEnvironmentUpdated={onEnvironmentUpdated}
+      onEnvironmentDeleted={onEnvironmentDeleted}
     />,
   )
-  return { onTabChange, onClose, onProjectUpdated, onDeleted }
+  return { onTabChange, onClose, onProjectUpdated, onDeleted, onEnvironmentCreated, onEnvironmentUpdated, onEnvironmentDeleted }
 }
 
 describe('ProjectDetailPanel', () => {
@@ -91,6 +112,71 @@ describe('ProjectDetailPanel', () => {
     await waitFor(() => {
       expect(api.deleteProject).toHaveBeenCalledWith('p1')
       expect(onDeleted).toHaveBeenCalled()
+    })
+  })
+
+  it('lists environments and marks the default one', () => {
+    setup('settings')
+    expect(screen.getByText('Production')).toBeInTheDocument()
+    expect(screen.getByText('Development')).toBeInTheDocument()
+    expect(screen.getByText('default')).toBeInTheDocument()
+  })
+
+  it('renames an environment', async () => {
+    const updated = { ...devEnv, name: 'Staging', slug: 'staging' }
+    vi.mocked(api.updateEnvironment).mockResolvedValue(updated)
+    const { onEnvironmentUpdated } = setup('settings')
+
+    fireEvent.click(screen.getByText('Development'))
+    const input = screen.getByDisplayValue('Development')
+    fireEvent.change(input, { target: { value: 'Staging' } })
+    fireEvent.click(screen.getByLabelText('Save environment name'))
+
+    await waitFor(() => {
+      expect(api.updateEnvironment).toHaveBeenCalledWith('env-2', { name: 'Staging' })
+      expect(onEnvironmentUpdated).toHaveBeenCalledWith(updated)
+    })
+  })
+
+  it('requires a second click to delete an environment', async () => {
+    vi.mocked(api.deleteEnvironment).mockResolvedValue(undefined)
+    const { onEnvironmentDeleted } = setup('settings')
+
+    const removeButtons = screen.getAllByLabelText('Remove environment')
+    fireEvent.click(removeButtons[1]!) // Development row
+
+    expect(api.deleteEnvironment).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByLabelText('Delete?'))
+
+    await waitFor(() => {
+      expect(api.deleteEnvironment).toHaveBeenCalledWith('env-2')
+      expect(onEnvironmentDeleted).toHaveBeenCalledWith('env-2')
+    })
+  })
+
+  it('shows an error inline when deleting the default environment is rejected', async () => {
+    vi.mocked(api.deleteEnvironment).mockRejectedValue(new Error('The default environment cannot be deleted'))
+    setup('settings')
+
+    const removeButtons = screen.getAllByLabelText('Remove environment')
+    fireEvent.click(removeButtons[0]!) // Production row
+    fireEvent.click(screen.getByLabelText('Delete?'))
+
+    expect(await screen.findByText('The default environment cannot be deleted')).toBeInTheDocument()
+  })
+
+  it('opens the create-environment modal and creates one', async () => {
+    const created = { id: 'env-3', projectId: 'p1', name: 'QA', slug: 'qa', isDefault: false, createdAt: new Date().toISOString() }
+    vi.mocked(api.createEnvironment).mockResolvedValue(created)
+    const { onEnvironmentCreated } = setup('settings')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add environment' }))
+    fireEvent.change(screen.getByLabelText('Environment name'), { target: { value: 'QA' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Create environment' }))
+
+    await waitFor(() => {
+      expect(api.createEnvironment).toHaveBeenCalledWith({ projectId: 'p1', name: 'QA' })
+      expect(onEnvironmentCreated).toHaveBeenCalledWith(created)
     })
   })
 })
