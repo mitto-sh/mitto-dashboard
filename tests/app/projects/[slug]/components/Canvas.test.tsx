@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { screen, fireEvent } from '@testing-library/react'
-import { Canvas } from '@/app/projects/[id]/components/Canvas'
+import { Canvas } from '@/app/projects/[slug]/components/Canvas'
 import { renderWithTheme } from '../../../../helpers/renderWithTheme'
 import type { Service, Deployment } from '@/lib/types'
 

@@ -29,7 +29,7 @@ function renderCard(overrides: Partial<Parameters<typeof ProjectCard>[0]> = {}) 
 describe('ProjectCard', () => {
   it('links to the project canvas', () => {
     renderCard()
-    expect(screen.getAllByRole('link')[0]).toHaveAttribute('href', '/projects/p1')
+    expect(screen.getAllByRole('link')[0]).toHaveAttribute('href', '/projects/acme')
   })
 
   it('shows the identity avatar with the first letter of the name', () => {

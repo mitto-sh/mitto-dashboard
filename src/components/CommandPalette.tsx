@@ -30,7 +30,7 @@ export function CommandPalette({ projects, open, onOpenChange }: CommandPaletteP
                 key={project.id}
                 value={`${project.name} ${project.slug}`}
                 onSelect={() => {
-                  router.push(`/projects/${project.id}`)
+                  router.push(`/projects/${project.slug}`)
                   onOpenChange(false)
                 }}
               >

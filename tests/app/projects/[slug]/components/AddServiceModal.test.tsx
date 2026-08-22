@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { screen, fireEvent, waitFor } from '@testing-library/react'
 import { renderWithTheme } from '../../../../helpers/renderWithTheme'
-import { AddServiceModal } from '@/app/projects/[id]/components/AddServiceModal'
+import { AddServiceModal } from '@/app/projects/[slug]/components/AddServiceModal'
 
 describe('AddServiceModal', () => {
   it('shows a validation error and does not submit when the name is empty', async () => {

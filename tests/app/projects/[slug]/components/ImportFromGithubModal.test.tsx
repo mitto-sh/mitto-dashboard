@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { screen, fireEvent, waitFor } from '@testing-library/react'
-import { ImportFromGithubModal } from '@/app/projects/[id]/components/ImportFromGithubModal'
+import { ImportFromGithubModal } from '@/app/projects/[slug]/components/ImportFromGithubModal'
 import { renderWithTheme } from '../../../../helpers/renderWithTheme'
 import type { GithubInstallation, GithubRepo, Service } from '@/lib/types'
 

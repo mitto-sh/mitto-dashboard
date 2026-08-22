@@ -25,7 +25,7 @@ export function ProjectCard({ project, onRequestDelete, onRequestSettings }: Pro
 
   return (
     <div className="group relative rounded-xl border border-line bg-surface p-5 shadow-none transition-all duration-150 hover:-translate-y-[2px] hover:shadow-card">
-      <Link href={`/projects/${project.id}`} className="block">
+      <Link href={`/projects/${project.slug}`} className="block">
         <div className="flex items-start gap-3">
           <div
             className="flex h-9 w-9 flex-none items-center justify-center rounded-[9px] font-mono text-sm font-semibold text-white"

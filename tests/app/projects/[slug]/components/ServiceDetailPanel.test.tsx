@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithTheme } from '../../../../helpers/renderWithTheme'
-import { ServiceDetailPanel } from '@/app/projects/[id]/components/ServiceDetailPanel'
+import { ServiceDetailPanel } from '@/app/projects/[slug]/components/ServiceDetailPanel'
 import type { Service, Deployment, EnvVar } from '@/lib/types'
 
 const service: Service = {

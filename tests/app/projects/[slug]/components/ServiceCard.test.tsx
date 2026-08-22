@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { screen, fireEvent } from '@testing-library/react'
 import { DndContext } from '@dnd-kit/core'
-import { ServiceCard } from '@/app/projects/[id]/components/ServiceCard'
+import { ServiceCard } from '@/app/projects/[slug]/components/ServiceCard'
 import { renderWithTheme } from '../../../../helpers/renderWithTheme'
 import type { Service } from '@/lib/types'
 

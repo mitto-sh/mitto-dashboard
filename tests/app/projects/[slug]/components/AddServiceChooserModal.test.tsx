@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { screen, fireEvent } from '@testing-library/react'
-import { AddServiceChooserModal } from '@/app/projects/[id]/components/AddServiceChooserModal'
+import { AddServiceChooserModal } from '@/app/projects/[slug]/components/AddServiceChooserModal'
 import { renderWithTheme } from '../../../../helpers/renderWithTheme'
 
 describe('AddServiceChooserModal', () => {

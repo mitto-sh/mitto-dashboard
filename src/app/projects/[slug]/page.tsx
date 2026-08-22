@@ -25,7 +25,7 @@ type PanelState =
   | { kind: 'service'; service: Service }
   | { kind: 'project'; tab: 'overview' | 'settings' }
 
-function ProjectCanvasView({ projectId }: { projectId: string }) {
+function ProjectCanvasView({ projectSlug }: { projectSlug: string }) {
   const { dict } = useThemeContext()
   const router = useRouter()
   const [project, setProject] = useState<Project | null>(null)
@@ -37,16 +37,16 @@ function ProjectCanvasView({ projectId }: { projectId: string }) {
   const [createEnvOpen, setCreateEnvOpen] = useState(false)
 
   useEffect(() => {
-    api.getProject(projectId).then(async (p) => {
+    api.getProjectBySlug(projectSlug).then(async (p) => {
       setProject(p)
-      const envs = await api.listEnvironments(projectId).catch(() => [])
+      const envs = await api.listEnvironments(p.id).catch(() => [])
       setEnvironments(envs)
 
-      const storedId = getSelectedEnvironmentId(projectId)
+      const storedId = getSelectedEnvironmentId(p.id)
       const initial = envs.find((e) => e.id === storedId) ?? envs.find((e) => e.isDefault) ?? envs[0] ?? null
       setSelectedEnv(initial)
     }).catch(() => {})
-  }, [projectId])
+  }, [projectSlug])
 
   useEffect(() => {
     if (!project || !selectedEnv) return
@@ -61,11 +61,11 @@ function ProjectCanvasView({ projectId }: { projectId: string }) {
 
   function handleSelectEnv(env: Environment) {
     setSelectedEnv(env)
-    setSelectedEnvironmentId(projectId, env.id)
+    setSelectedEnvironmentId(project!.id, env.id)
   }
 
   async function handleCreateEnv(data: { name: string }) {
-    const env = await api.createEnvironment({ projectId, name: data.name })
+    const env = await api.createEnvironment({ projectId: project!.id, name: data.name })
     setEnvironments((prev) => [...prev, env])
     handleSelectEnv(env)
     setCreateEnvOpen(false)
@@ -86,13 +86,13 @@ function ProjectCanvasView({ projectId }: { projectId: string }) {
     if (selectedEnv?.id === id) {
       const fallback = next.find((e) => e.isDefault) ?? next[0] ?? null
       setSelectedEnv(fallback)
-      if (fallback) setSelectedEnvironmentId(projectId, fallback.id)
+      if (fallback) setSelectedEnvironmentId(project!.id, fallback.id)
     }
   }
 
   async function handleCreateService(data: { name: string; type: string; port?: number }) {
     const service = await api.createService({
-      projectId,
+      projectId: project!.id,
       name: data.name,
       type: data.type as Service['type'],
       port: data.port,
@@ -168,7 +168,7 @@ function ProjectCanvasView({ projectId }: { projectId: string }) {
       />
 
       <Canvas
-        projectId={projectId}
+        projectId={project.id}
         services={project.services ?? []}
         latestDeployments={latestDeployments}
         selectedServiceId={panel.kind === 'service' ? panel.service.id : null}
@@ -194,7 +194,7 @@ function ProjectCanvasView({ projectId }: { projectId: string }) {
 
       {addServiceStep === 'github' && (
         <ImportFromGithubModal
-          projectId={projectId}
+          projectId={project.id}
           onCancel={() => setAddServiceStep('closed')}
           onImported={handleGithubImported}
         />
@@ -237,11 +237,11 @@ function ProjectCanvasView({ projectId }: { projectId: string }) {
 }
 
 export default function ProjectPage() {
-  const params = useParams<{ id: string }>()
+  const params = useParams<{ slug: string }>()
 
   return (
     <AuthGuard>
-      <ProjectCanvasView projectId={params.id} />
+      <ProjectCanvasView projectSlug={params.slug} />
     </AuthGuard>
   )
 }

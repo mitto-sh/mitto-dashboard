@@ -40,7 +40,7 @@ describe('CommandPalette', () => {
     renderWithTheme(<CommandPalette projects={projects} open onOpenChange={onOpenChange} />)
     await userEvent.click(screen.getByText('api-gateway'))
 
-    expect(push).toHaveBeenCalledWith('/projects/p1')
+    expect(push).toHaveBeenCalledWith('/projects/api-gateway')
     expect(onOpenChange).toHaveBeenCalledWith(false)
   })
 })

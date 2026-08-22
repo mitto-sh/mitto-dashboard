@@ -8,13 +8,13 @@ import type { Project, Service, Environment } from '@/lib/types'
 const routerPush = vi.fn()
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace: vi.fn(), push: routerPush }),
-  useParams: () => ({ id: 'p1' }),
+  useParams: () => ({ slug: 'my-app' }),
 }))
 
 vi.mock('@/lib/api', () => ({
   api: {
     me: vi.fn(),
-    getProject: vi.fn(),
+    getProjectBySlug: vi.fn(),
     listProjects: vi.fn(),
     listDeployments: vi.fn(),
     createService: vi.fn(),
@@ -51,7 +51,7 @@ describe('ProjectPage (canvas)', () => {
   beforeEach(() => {
     setToken('a-token')
     routerPush.mockClear()
-    vi.mocked(api.getProject).mockResolvedValue(project)
+    vi.mocked(api.getProjectBySlug).mockResolvedValue(project)
     vi.mocked(api.listProjects).mockResolvedValue([project])
     vi.mocked(api.listDeployments).mockResolvedValue([])
     vi.mocked(api.listEnvVars).mockResolvedValue([])
@@ -60,7 +60,7 @@ describe('ProjectPage (canvas)', () => {
   })
 
   it('renders the project name and its services on the canvas', async () => {
-    const { default: ProjectPage } = await import('@/app/projects/[id]/page')
+    const { default: ProjectPage } = await import('@/app/projects/[slug]/page')
     renderWithTheme(<ProjectPage />)
 
     expect(await screen.findByText('my-app')).toBeInTheDocument()
@@ -71,7 +71,7 @@ describe('ProjectPage (canvas)', () => {
     const newService: Service = { ...service, id: 'svc-2', name: 'worker', type: 'worker' }
     vi.mocked(api.createService).mockResolvedValue(newService)
 
-    const { default: ProjectPage } = await import('@/app/projects/[id]/page')
+    const { default: ProjectPage } = await import('@/app/projects/[slug]/page')
     renderWithTheme(<ProjectPage />)
 
     await screen.findByText('my-app')
@@ -100,7 +100,7 @@ describe('ProjectPage (canvas)', () => {
     vi.mocked(api.getRepoConfig).mockResolvedValue({ found: false })
     vi.mocked(api.createService).mockResolvedValue(importedService)
 
-    const { default: ProjectPage } = await import('@/app/projects/[id]/page')
+    const { default: ProjectPage } = await import('@/app/projects/[slug]/page')
     renderWithTheme(<ProjectPage />)
 
     await screen.findByText('my-app')
@@ -120,7 +120,7 @@ describe('ProjectPage (canvas)', () => {
   })
 
   it('opens the service detail panel when a service card is clicked', async () => {
-    const { default: ProjectPage } = await import('@/app/projects/[id]/page')
+    const { default: ProjectPage } = await import('@/app/projects/[slug]/page')
     renderWithTheme(<ProjectPage />)
 
     await screen.findByText('my-app')
@@ -132,7 +132,7 @@ describe('ProjectPage (canvas)', () => {
   it('disables a service from the panel and reflects it on the canvas card', async () => {
     vi.mocked(api.updateService).mockResolvedValue({ ...service, enabled: false })
 
-    const { default: ProjectPage } = await import('@/app/projects/[id]/page')
+    const { default: ProjectPage } = await import('@/app/projects/[slug]/page')
     renderWithTheme(<ProjectPage />)
 
     await screen.findByText('my-app')
@@ -147,7 +147,7 @@ describe('ProjectPage (canvas)', () => {
   })
 
   it('opens the project panel on the Settings tab from the settings icon', async () => {
-    const { default: ProjectPage } = await import('@/app/projects/[id]/page')
+    const { default: ProjectPage } = await import('@/app/projects/[slug]/page')
     renderWithTheme(<ProjectPage />)
 
     await screen.findByText('my-app')
@@ -157,9 +157,9 @@ describe('ProjectPage (canvas)', () => {
   })
 
   it('shows a disabled badge when the project is disabled', async () => {
-    vi.mocked(api.getProject).mockResolvedValue({ ...project, enabled: false })
+    vi.mocked(api.getProjectBySlug).mockResolvedValue({ ...project, enabled: false })
 
-    const { default: ProjectPage } = await import('@/app/projects/[id]/page')
+    const { default: ProjectPage } = await import('@/app/projects/[slug]/page')
     renderWithTheme(<ProjectPage />)
 
     expect(await screen.findByText('disabled')).toBeInTheDocument()

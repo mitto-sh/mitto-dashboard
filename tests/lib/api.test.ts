@@ -67,6 +67,7 @@ describe('api client', () => {
     mockFetchOnce(200, {})
     await api.me()
     await api.createProject({ name: 'x' })
+    await api.getProjectBySlug('x')
     await api.createService({ projectId: 'p1', name: 'web', type: 'web' })
     await api.listDeployments('svc-1')
     await api.triggerDeployment('svc-1')

@@ -60,7 +60,7 @@ describe('ProjectsPage', () => {
     renderWithTheme(<ProjectsPage />)
 
     expect(await screen.findByText('My App')).toBeInTheDocument()
-    expect(screen.getAllByRole('link').find((el) => el.getAttribute('href') === '/projects/p1')).toBeTruthy()
+    expect(screen.getAllByRole('link').find((el) => el.getAttribute('href') === '/projects/my-app')).toBeTruthy()
   })
 
   it('shows private/public and service count on each card', async () => {
@@ -197,7 +197,7 @@ describe('ProjectsPage', () => {
 
     const dialog = await screen.findByRole('dialog')
     await userEvent.click(await within(dialog).findByText('My App'))
-    expect(routerPush).toHaveBeenCalledWith('/projects/p1')
+    expect(routerPush).toHaveBeenCalledWith('/projects/my-app')
   })
 
   it('opens the command palette with the ⌘K shortcut', async () => {
