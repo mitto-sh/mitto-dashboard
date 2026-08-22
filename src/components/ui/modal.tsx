@@ -1,6 +1,7 @@
 'use client'
 
 import type { FormEvent, ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { cn } from '@/lib/utils'
 
 interface ModalProps {
@@ -15,7 +16,7 @@ interface ModalProps {
 export function Modal({ children, width = 400, urgent = false, as, onSubmit, className }: ModalProps) {
   const Container = as === 'form' ? 'form' : 'div'
 
-  return (
+  return createPortal(
     <div
       className={cn('fixed inset-0 flex items-center justify-center bg-overlay backdrop-blur-[4px]', urgent ? 'z-50' : 'z-40')}
     >
@@ -26,7 +27,8 @@ export function Modal({ children, width = 400, urgent = false, as, onSubmit, cla
       >
         {children}
       </Container>
-    </div>
+    </div>,
+    document.body
   )
 }
 

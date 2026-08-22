@@ -35,7 +35,7 @@ export function CreateEnvironmentModal({ onCancel, onCreate }: CreateEnvironment
   }
 
   return (
-    <Modal as="form" onSubmit={handleSubmit}>
+    <Modal as="form" onSubmit={handleSubmit} urgent>
       <h2 className="text-[15px] font-semibold text-ink">{dict.createEnvironment}</h2>
 
       <label className="mb-[6px] mt-5 block font-mono text-label uppercase tracking-[0.08em] text-ink-muted" htmlFor="environment-name">

@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useThemeContext } from './ThemeProvider'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu'
-import { SunIcon, MoonIcon } from './icons'
 import { clearToken } from '@/lib/auth'
 import { api } from '@/lib/api'
 import { identityColor, initialFor } from '@/lib/identity'
@@ -46,7 +45,6 @@ export function UserMenu() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onSelect={toggleTheme} aria-label="Toggle theme">
-          {mode === 'graphite' ? <SunIcon size={13} /> : <MoonIcon size={13} />}
           <span className="flex-1">Theme</span>
           <span className="font-mono text-xs text-muted-foreground">{mode === 'graphite' ? 'Dark' : 'Light'}</span>
         </DropdownMenuItem>
