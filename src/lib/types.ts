@@ -29,6 +29,7 @@ export interface Service {
   cpu: number
   memory: number
   enabled: boolean
+  teardownStatus?: 'idle' | 'tearing_down'
   repoUrl: string | null
   repoProvider: RepoProvider | null
   defaultBranch: string

@@ -14,6 +14,7 @@ vi.mock('next/navigation', () => ({
 vi.mock('@/lib/api', () => ({
   api: {
     me: vi.fn(),
+    getProject: vi.fn(),
     getProjectBySlug: vi.fn(),
     listProjects: vi.fn(),
     listDeployments: vi.fn(),
@@ -154,6 +155,29 @@ describe('ProjectPage (canvas)', () => {
     fireEvent.click(screen.getByLabelText('Project settings'))
 
     expect(await screen.findByRole('button', { name: 'Delete project' })).toBeInTheDocument()
+  })
+
+  it('polls until a tearing-down service settles, then stops updating the card', async () => {
+    const tearingDown: Service = { ...service, enabled: false, teardownStatus: 'tearing_down' }
+    const settled: Service = { ...tearingDown, teardownStatus: 'idle' }
+    vi.mocked(api.getProjectBySlug).mockResolvedValue({ ...project, services: [tearingDown] })
+    vi.mocked(api.getProject).mockResolvedValue({ ...project, services: [settled] })
+
+    vi.useFakeTimers()
+    const { default: ProjectPage } = await import('@/app/projects/[slug]/page')
+    renderWithTheme(<ProjectPage />)
+
+    await vi.waitFor(() => expect(screen.getByText('disabling…')).toBeInTheDocument())
+
+    await vi.advanceTimersByTimeAsync(3100)
+    expect(api.getProject).toHaveBeenCalledWith('p1')
+    await vi.waitFor(() => expect(screen.getByText('off')).toBeInTheDocument())
+
+    const callsAfterSettling = vi.mocked(api.getProject).mock.calls.length
+    await vi.advanceTimersByTimeAsync(3100)
+    expect(vi.mocked(api.getProject).mock.calls.length).toBe(callsAfterSettling)
+
+    vi.useRealTimers()
   })
 
   it('shows a disabled badge when the project is disabled', async () => {

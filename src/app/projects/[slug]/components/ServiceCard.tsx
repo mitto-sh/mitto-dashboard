@@ -23,13 +23,18 @@ export function ServiceCard({ service, position, latestStatus, selected, onSelec
     id: service.id,
   })
 
-  const color = statusColorFor(theme, latestStatus)
-  const hasStatus = latestStatus !== null
-  const borderColor = hasStatus ? hexWithAlpha(color, isDragging ? 0.6 : 0.35) : theme.border
-  const borderHoverColor = hasStatus ? hexWithAlpha(color, 0.6) : theme.faint
-  const glow = hasStatus
-    ? `0 0 0 1px ${hexWithAlpha(color, 0.14)}, 0 0 28px ${hexWithAlpha(color, 0.1)}`
-    : '0 0 0 0 transparent'
+  const isDisabled = !service.enabled
+  const isTearingDown = isDisabled && service.teardownStatus === 'tearing_down'
+
+  const color = isDisabled ? theme.faint : statusColorFor(theme, latestStatus)
+  const hasStatus = isDisabled ? false : latestStatus !== null
+  const borderColor = isDisabled
+    ? theme.border
+    : hasStatus ? hexWithAlpha(color, isDragging ? 0.6 : 0.35) : theme.border
+  const borderHoverColor = isDisabled
+    ? theme.faint
+    : hasStatus ? hexWithAlpha(color, 0.6) : theme.faint
+  const glow = hasStatus ? `0 0 28px ${hexWithAlpha(color, 0.1)}` : '0 0 0 0 transparent'
   const shadow = isDragging ? `${glow}, ${theme.shadowDrag}` : `${glow}, ${theme.shadowCard}`
 
   const style: React.CSSProperties = {
@@ -46,6 +51,9 @@ export function ServiceCard({ service, position, latestStatus, selected, onSelec
     ['--hover-border' as string]: borderHoverColor,
   }
 
+  const dotPulsing = isDisabled ? isTearingDown : isPulsing(latestStatus)
+  const displayLabel = isTearingDown ? 'disabling…' : isDisabled ? 'off' : statusLabel(latestStatus)
+
   return (
     <div
       ref={setNodeRef}
@@ -54,17 +62,17 @@ export function ServiceCard({ service, position, latestStatus, selected, onSelec
       {...attributes}
       onClick={() => onSelect(service)}
       data-testid={`service-card-${service.id}`}
-      className="w-[264px] cursor-grab touch-none select-none rounded-xl border p-[16px_18px] hover:[border-color:var(--hover-border)]"
+      className={`w-[264px] cursor-grab touch-none select-none rounded-xl border-[1.5px] p-[16px_18px] hover:[border-color:var(--hover-border)] ${isTearingDown ? 'animate-dotPulse' : ''}`}
     >
       <div className="flex items-center gap-[9px]">
         <span
-          className={`h-2 w-2 flex-none rounded-full ${isPulsing(latestStatus) ? 'animate-dotPulse' : ''}`}
+          className={`h-2 w-2 flex-none rounded-full ${dotPulsing ? 'animate-dotPulse' : ''}`}
           style={{ backgroundColor: hasStatus ? color : theme.faint }}
         />
         <span className="flex-1 truncate text-body-sm font-semibold tracking-tight">{service.name}</span>
       </div>
       <div className="mt-[9px] flex items-center gap-[6px]">
-        {!service.enabled && <DisabledBadge />}
+        {isDisabled && <DisabledBadge />}
         <span className="inline-flex items-center gap-[5px] rounded-[5px] border border-border-chip bg-chip px-[7px] py-[3px] font-mono text-label font-medium uppercase tracking-[0.08em] text-ink-secondary">
           <ServiceTypeIcon type={service.type} size={11} />
           {service.type}
@@ -72,7 +80,7 @@ export function ServiceCard({ service, position, latestStatus, selected, onSelec
       </div>
       <div className="mt-[12px] flex items-center justify-between font-mono text-xs">
         <span className="text-ink-muted">{service.port ? `:${service.port}` : 'no port'}</span>
-        <span style={{ color: hasStatus ? color : theme.faint }}>{statusLabel(latestStatus)}</span>
+        <span style={{ color: hasStatus ? color : theme.faint }}>{displayLabel}</span>
       </div>
     </div>
   )

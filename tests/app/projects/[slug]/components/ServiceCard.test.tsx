@@ -67,4 +67,22 @@ describe('ServiceCard', () => {
     renderCard({ service: { ...service, enabled: false } })
     expect(screen.getByText('disabled')).toBeInTheDocument()
   })
+
+  it('shows a settled "off" status and does not pulse when disabled and idle', () => {
+    renderCard({ service: { ...service, enabled: false, teardownStatus: 'idle' } })
+    expect(screen.getByText('off')).toBeInTheDocument()
+    expect(screen.getByTestId('service-card-svc-1')).not.toHaveClass('animate-dotPulse')
+  })
+
+  it('pulses the whole card and shows "disabling…" while tearing down', () => {
+    renderCard({ service: { ...service, enabled: false, teardownStatus: 'tearing_down' } })
+    expect(screen.getByText('disabling…')).toBeInTheDocument()
+    expect(screen.getByTestId('service-card-svc-1')).toHaveClass('animate-dotPulse')
+  })
+
+  it('ignores the deployment status color/label once disabled, even if latestStatus is live', () => {
+    renderCard({ service: { ...service, enabled: false }, latestStatus: 'live' })
+    expect(screen.queryByText('live')).not.toBeInTheDocument()
+    expect(screen.getByText('off')).toBeInTheDocument()
+  })
 })

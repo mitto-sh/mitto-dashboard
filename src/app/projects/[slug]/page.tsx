@@ -18,6 +18,9 @@ import { api } from '@/lib/api'
 import { getSelectedEnvironmentId, setSelectedEnvironmentId } from '@/lib/selectedEnvironment'
 import type { Project, Service, Deployment, Environment } from '@/lib/types'
 
+const IN_FLIGHT_DEPLOYMENT_STATUSES = ['queued', 'building', 'pushing', 'provisioning']
+const POLL_INTERVAL_MS = 3000
+
 type AddServiceStep = 'closed' | 'choose' | 'manual' | 'github'
 
 type PanelState =
@@ -58,6 +61,32 @@ function ProjectCanvasView({ projectSlug }: { projectSlug: string }) {
       }),
     ).then((entries) => setLatestDeployments(Object.fromEntries(entries)))
   }, [project, selectedEnv])
+
+  useEffect(() => {
+    if (!project || !selectedEnv) return
+
+    const services = project.services ?? []
+    const hasPendingTeardown = services.some((s) => s.teardownStatus === 'tearing_down')
+    const hasPendingDeployment = Object.values(latestDeployments).some(
+      (d) => d && IN_FLIGHT_DEPLOYMENT_STATUSES.includes(d.status),
+    )
+    if (!hasPendingTeardown && !hasPendingDeployment) return
+
+    const interval = setInterval(async () => {
+      const refreshed = await api.getProject(project.id).catch(() => null)
+      if (refreshed) setProject(refreshed)
+
+      const entries = await Promise.all(
+        services.map(async (s) => {
+          const deployments = await api.listDeployments(s.id, selectedEnv.id).catch(() => [])
+          return [s.id, deployments[0]] as const
+        }),
+      )
+      setLatestDeployments(Object.fromEntries(entries))
+    }, POLL_INTERVAL_MS)
+
+    return () => clearInterval(interval)
+  }, [project, selectedEnv, latestDeployments])
 
   function handleSelectEnv(env: Environment) {
     setSelectedEnv(env)
