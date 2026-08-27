@@ -78,6 +78,8 @@ export const api = {
     request<Deployment>('/deployments', { method: 'POST', body: JSON.stringify({ serviceId, environmentId }) }),
   cancelDeployment: (id: string) =>
     request<Deployment>(`/deployments/${id}/cancel`, { method: 'POST' }),
+  getLogsToken: (deploymentId: string) =>
+    request<{ token: string }>(`/deployments/${deploymentId}/logs-token`),
 
   listEnvVars: (serviceId: string, environmentId: string) =>
     request<EnvVar[]>(`/env/${serviceId}?environmentId=${environmentId}`),

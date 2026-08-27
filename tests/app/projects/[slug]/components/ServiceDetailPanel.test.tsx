@@ -34,6 +34,7 @@ vi.mock('@/lib/api', () => ({
     upsertEnvVars: vi.fn(),
     deleteEnvVar: vi.fn(),
     updateService: vi.fn(),
+    getLogsToken: vi.fn().mockRejectedValue(new Error('not exercised in these tests')),
   },
 }))
 

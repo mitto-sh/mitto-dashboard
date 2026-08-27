@@ -8,6 +8,7 @@ import { statusColorFor } from '@/lib/theme'
 import { formatRelativeTime } from '@/lib/time'
 import { useThemeContext } from '@/components/ThemeProvider'
 import { EntityPanel, type EntityPanelTab } from '@/components/EntityPanel'
+import { LogViewer } from '@/components/LogViewer'
 import { DisableServiceDialog } from './DisableServiceDialog'
 import { Switch } from '@/components/ui/switch'
 import { ServiceTypeIcon, XIcon, RocketIcon } from '@/components/icons'
@@ -169,6 +170,7 @@ export function ServiceDetailPanel({
                 {latest.commitSha && (
                   <p className="mt-[6px] font-mono text-caption text-ink-secondary">{latest.commitSha}</p>
                 )}
+                <LogViewer deploymentId={latest.id} />
               </div>
             ) : (
               <div className="mb-[14px] rounded-[10px] border border-dashed border-border p-[18px_16px] text-center">
