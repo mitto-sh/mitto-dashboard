@@ -107,3 +107,24 @@ export type RepoConfigResult =
   | { found: false }
   | { found: true; valid: true; config: { services: MittoServiceConfig[] } }
   | { found: true; valid: false; error: string }
+
+export type ProviderKind = 'cloud-managed' | 'self-hosted-vm' | 'self-hosted-aws' | 'self-hosted-gcp'
+
+export interface ProviderConfig {
+  kind: ProviderKind
+  updatedAt: string | null
+}
+
+export interface Agent {
+  id: string
+  name: string
+  tokenPrefix: string
+  status: 'online' | 'offline'
+  lastSeenAt: string | null
+  createdAt: string
+  revokedAt: string | null
+}
+
+export interface AgentCreated extends Agent {
+  token: string
+}

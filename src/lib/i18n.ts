@@ -46,6 +46,30 @@ export interface Dictionary {
   manageEnvironments: string
   addEnvironment: string
   confirmDelete: string
+  account: string
+  profile: string
+  provider: string
+  providerDesc: string
+  providerCloudManaged: string
+  providerCloudManagedDesc: string
+  providerSelfHostedVm: string
+  providerSelfHostedVmDesc: string
+  comingSoon: string
+  agents: string
+  agentsInstallHint: string
+  newAgent: string
+  agentName: string
+  create: string
+  revoke: string
+  online: string
+  offline: string
+  revoked: string
+  neverConnected: string
+  tokenOnceWarning: string
+  copy: string
+  copied: string
+  noAgents: string
+  saved: string
 }
 
 export const EN: Dictionary = {
@@ -88,6 +112,30 @@ export const EN: Dictionary = {
   manageEnvironments: 'Manage environments',
   addEnvironment: 'Add environment',
   confirmDelete: 'Delete?',
+  account: 'Account',
+  profile: 'Profile',
+  provider: 'Provider',
+  providerDesc: 'Where your services get deployed.',
+  providerCloudManaged: 'Cloud Managed',
+  providerCloudManagedDesc: 'AWS managed by Mitto (default)',
+  providerSelfHostedVm: 'Self-Hosted VM',
+  providerSelfHostedVmDesc: 'Your own VM + Docker, via an agent — no cloud account',
+  comingSoon: 'coming soon',
+  agents: 'Agents',
+  agentsInstallHint: 'Run one on your VM: curl -fsSL https://get.mitto.sh/agent | sh',
+  newAgent: 'New agent',
+  agentName: 'Agent name',
+  create: 'Create',
+  revoke: 'Revoke',
+  online: 'online',
+  offline: 'offline',
+  revoked: 'revoked',
+  neverConnected: 'never connected',
+  tokenOnceWarning: 'Copy this token now — it is shown only once.',
+  copy: 'Copy',
+  copied: 'Copied',
+  noAgents: 'no agents yet',
+  saved: 'Saved',
 }
 
 export const ES: Dictionary = {
@@ -130,6 +178,30 @@ export const ES: Dictionary = {
   manageEnvironments: 'Gestionar ambientes',
   addEnvironment: 'Agregar ambiente',
   confirmDelete: '¿Eliminar?',
+  account: 'Cuenta',
+  profile: 'Perfil',
+  provider: 'Proveedor',
+  providerDesc: 'Dónde se despliegan tus servicios.',
+  providerCloudManaged: 'Cloud gestionado',
+  providerCloudManagedDesc: 'AWS gestionado por Mitto (por defecto)',
+  providerSelfHostedVm: 'VM propia',
+  providerSelfHostedVmDesc: 'Tu VM + Docker, vía un agente — sin cuenta cloud',
+  comingSoon: 'próximamente',
+  agents: 'Agentes',
+  agentsInstallHint: 'Corré uno en tu VM: curl -fsSL https://get.mitto.sh/agent | sh',
+  newAgent: 'Nuevo agente',
+  agentName: 'Nombre del agente',
+  create: 'Crear',
+  revoke: 'Revocar',
+  online: 'en línea',
+  offline: 'desconectado',
+  revoked: 'revocado',
+  neverConnected: 'nunca conectó',
+  tokenOnceWarning: 'Copiá este token ahora — se muestra una sola vez.',
+  copy: 'Copiar',
+  copied: 'Copiado',
+  noAgents: 'sin agentes todavía',
+  saved: 'Guardado',
 }
 
 export const DICTIONARIES: Record<Lang, Dictionary> = { en: EN, es: ES }
