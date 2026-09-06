@@ -4,15 +4,17 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useThemeContext } from './ThemeProvider'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu'
+import { AccountPanel } from './AccountPanel'
 import { clearToken } from '@/lib/auth'
 import { api } from '@/lib/api'
 import { identityColor, initialFor } from '@/lib/identity'
 import type { User } from '@/lib/types'
 
 export function UserMenu() {
-  const { mode, toggleTheme, lang, toggleLang } = useThemeContext()
+  const { mode, toggleTheme, lang, toggleLang, dict } = useThemeContext()
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
+  const [accountOpen, setAccountOpen] = useState(false)
 
   useEffect(() => {
     api.me().then(setUser).catch(() => {})
@@ -26,6 +28,7 @@ export function UserMenu() {
   const displayName = user?.name || user?.email || '?'
 
   return (
+    <>
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label="User menu"
@@ -53,10 +56,16 @@ export function UserMenu() {
           <span className="font-mono text-xs text-muted-foreground">{lang === 'es' ? 'ES' : 'EN'}</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={() => setTimeout(() => setAccountOpen(true), 0)}>
+          {dict.account}
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <DropdownMenuItem variant="destructive" onSelect={handleSignOut}>
           Sign out
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+    <AccountPanel open={accountOpen} onOpenChange={setAccountOpen} user={user} />
+    </>
   )
 }

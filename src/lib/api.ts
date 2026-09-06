@@ -2,6 +2,7 @@ import { getToken, clearToken } from './auth'
 import type {
   Project, Service, ServiceType, RepoProvider, Deployment, EnvVar, User, Environment,
   GithubInstallation, GithubRepo, RepoConfigResult,
+  ProviderConfig, ProviderKind, Agent, AgentCreated,
 } from './types'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'
@@ -96,6 +97,14 @@ export const api = {
     request<Environment>(`/environments/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   deleteEnvironment: (id: string) =>
     request<void>(`/environments/${id}`, { method: 'DELETE' }),
+
+  getProvider: () => request<ProviderConfig>('/account/provider'),
+  setProvider: (kind: ProviderKind) =>
+    request<ProviderConfig>('/account/provider', { method: 'PUT', body: JSON.stringify({ kind }) }),
+  listAgents: () => request<Agent[]>('/account/agents'),
+  createAgent: (name: string) =>
+    request<AgentCreated>('/account/agents', { method: 'POST', body: JSON.stringify({ name }) }),
+  revokeAgent: (id: string) => request<void>(`/account/agents/${id}`, { method: 'DELETE' }),
 
   githubInstallUrl: () => request<{ url: string }>('/github/install-url'),
   listGithubInstallations: () => request<GithubInstallation[]>('/github/installations'),
