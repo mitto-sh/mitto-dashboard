@@ -1,0 +1,17 @@
+name: deploy
+
+on:
+  push:
+    branches: [develop]
+    paths-ignore: ['**.md', '.github/**']
+
+jobs:
+  deploy:
+    uses: mitto-sh/mitto-infra/.github/workflows/deploy-service.yml@develop
+    with:
+      service: dashboard
+      needs-codeartifact: false
+      build-args: |
+        NEXT_PUBLIC_API_URL=https://api.dhinrichs.dev
+        NEXT_PUBLIC_REALTIME_URL=wss://realtime.dhinrichs.dev
+    secrets: inherit
