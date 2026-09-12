@@ -10,7 +10,7 @@ jobs:
     uses: mitto-sh/mitto-infra/.github/workflows/deploy-service.yml@develop
     with:
       service: dashboard
-      needs-codeartifact: false
+      needs-packages: false
       build-args: |
         NEXT_PUBLIC_API_URL=https://api.dhinrichs.dev
         NEXT_PUBLIC_REALTIME_URL=wss://realtime.dhinrichs.dev
