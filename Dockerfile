@@ -4,9 +4,9 @@ ARG NEXT_PUBLIC_API_URL=http://localhost:4000
 ARG NEXT_PUBLIC_REALTIME_URL=ws://localhost:4104
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_REALTIME_URL=$NEXT_PUBLIC_REALTIME_URL
-COPY mitto-dashboard/package.json mitto-dashboard/package-lock.json ./
+COPY package.json package-lock.json ./
 RUN npm ci
-COPY mitto-dashboard/ ./
+COPY . .
 RUN npm run build
 
 FROM node:20-alpine
